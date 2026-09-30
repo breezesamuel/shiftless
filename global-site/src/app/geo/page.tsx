@@ -18,8 +18,9 @@ export default function GeoAuditPage() {
           </span>
           <nav className="flex items-center gap-6 text-sm font-medium text-slate-600">
             <a href="#what" className="hover:text-slate-900">是什么</a>
-            <a href="#samples" className="hover:text-slate-900">样板</a>
-            <a href="#order" className="hover:text-slate-900">下单</a>
+              <a href="#samples" className="hover:text-slate-900">样板</a>
+              <a href="/geo/subscribe" className="hover:text-slate-900">订阅</a>
+              <a href="#order" className="hover:text-slate-900">下单</a>
           </nav>
         </div>
       </header>
@@ -152,6 +153,21 @@ export default function GeoAuditPage() {
             <p className="mt-2 mb-6 text-slate-600">
               先看样板，再决定买不买。转账对公/微信/支付宝均可，备注订单号即可。
             </p>
+            <div className="mb-6 rounded-2xl border border-slate-900 bg-slate-50 p-5">
+              <h3 className="font-semibold text-slate-900">
+                只想偶尔测一次？直接下单单次报告。
+              </h3>
+              <p className="mt-1 text-sm text-slate-600">
+                要长期盯回归，订阅更划算：10 次免费起步，之后 ¥60/月、¥150/季、¥500/年
+                （或 $9.9 / $25 / $99），并含季度对比与分数曲线。
+              </p>
+              <a
+                href="/geo/subscribe"
+                className="mt-3 inline-block rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+              >
+                查看订阅方案 →
+              </a>
+            </div>
             <GeoOrder />
           </div>
         </section>
