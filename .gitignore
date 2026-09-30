@@ -68,4 +68,4 @@ deploy/task-runner/*.pid
 
 # Test outputs
 test-results/
-coverage/
+coverage/github-workflows/

@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
 
 const PRICES: Record<string, number> = {
   report: 1999,
@@ -23,19 +21,6 @@ function throttled(ip: string): boolean {
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const URL_ORIGIN = /^https?:\/\/[a-z0-9.-]+(\.[a-z]{2,}){1,}(:\d{1,5})?$/i;
-
-/** Path (relative to repo root) where pending subscriptions are staged. */
-const PENDING_DIR = path.join(process.cwd(), "..", "..", "..", "geo", "subscriptions", "pending");
-
-async function ensurePendingDir() {
-  await fs.mkdir(PENDING_DIR, { recursive: true });
-}
-
-async function writePendingSubscription(order: Record<string, unknown>) {
-  await ensurePendingDir();
-  const file = path.join(PENDING_DIR, `${order.orderId}.json`);
-  await fs.writeFile(file, JSON.stringify(order, null, 2), "utf8");
-}
 
 export async function POST(req: Request) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anon";
@@ -88,12 +73,12 @@ export async function POST(req: Request) {
     fetch(hook, { method: "POST", body: JSON.stringify(order) }).catch(() => {});
   }
 
-  // If it's a subscription, stage a pending file so the GitHub Action can
-  // pick it up, generate the baseline, and commit it to subscribers.json.
-  if (tier === "subscription") {
-    await writePendingSubscription(order);
-  }
-
+  // Order capture above (log + webhook) is the durable record.
+  // Nothing is written to the filesystem here on purpose: serverless
+  // filesystems are read-only, and an order must never 500 after the
+  // lead has already been captured. Subscription activation happens
+  // after payment is confirmed, by adding the site to
+  // geo/subscriptions/subscribers.json and deploying.
   return NextResponse.json({
     ok: true,
     orderId,
@@ -102,7 +87,7 @@ export async function POST(req: Request) {
     manual: true,
     nextStep:
       tier === "subscription"
-        ? `订单已记录（${orderId}）。请按下方支付方式转账 ¥${priceCny}，并备注订单号。到账后系统将自动建立基线、加入季度复审，并在下次部署时生效。`
+        ? `订单已记录（${orderId}）。请按下方支付方式转账 ¥${priceCny}，并备注订单号。到账后我们人工确认并把站点加入季度复审名单，基线在下次发布时生效。`
         : `订单已记录（${orderId}）。请按下方支付方式转账 ¥${priceCny}，并备注订单号。到账后 48 小时内发送完整报告。`,
   });
 }
