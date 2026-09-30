@@ -26,6 +26,14 @@ async function post(body, ip) {
   });
   return { status: r.status, json: await r.json().catch(() => null) };
 }
+async function postSub(body, ip) {
+  const r = await fetch(`${BASE}/api/sub-order`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-forwarded-for": ip || "203.0.113.9" },
+    body: JSON.stringify(body),
+  });
+  return { status: r.status, json: await r.json().catch(() => null) };
+}
 async function get(pathname) {
   const r = await fetch(BASE + pathname);
   return { status: r.status, text: await r.text() };
@@ -85,11 +93,45 @@ const srv = spawn(process.execPath, [path.join(__dirname, "..", "node_modules", 
     check("sellersprite sample page -> 200", k2.status === 200, String(k2.status));
     const k3 = await get("/geo/subscribe");
     check("subscribe page -> 200", k3.status === 200, String(k3.status));
-    check("subscribe page shows quarterly price 2999", /2999/.test(k3.text));
+    check("subscribe page shows CNY prices 60/150/500",
+      /60/.test(k3.text) && /150/.test(k3.text) && /500/.test(k3.text));
+    check("subscribe page shows USD prices 9.90/25/99",
+      /9\.90/.test(k3.text) && /\$25/.test(k3.text) && /\$99/.test(k3.text));
+    check("subscribe page shows the 10 free uses", /10\s*次免费|10\s*free/i.test(k3.text));
+    check("subscribe page shows all three referral rewards",
+      /赠\s*1\s*个月|1\s*month/.test(k3.text) &&
+      /3\s*个季度|quarter/.test(k3.text) &&
+      /赠\s*1\s*年|a\s*year/.test(k3.text));
+    check("subscribe page states non-stacking rule", /不叠加|do not stack|not 16/i.test(k3.text));
     check("subscribe page states honest boundary (no ranking promise)", !/保证.{0,4}排名|排名保证/.test(k3.text));
+    check("subscribe page does not fake a live payment channel",
+      /开通中|not live|not yet/i.test(k3.text));
+    check("subscribe page explains WeChat/Alipay are separate clearing systems",
+      /独立.{0,4}清算|互相转入/.test(k3.text));
 
+    const m = await get("/geo");
+    check("landing links to subscribe", /href="\/geo\/subscribe"/.test(m.text));
+    check("landing mentions free tier", /10\s*次免费|10\s*free/i.test(m.text));
+
+    console.log("\nSubscription endpoint validation");
+    const s1 = await postSub({ email: "subs@ex.com", siteUrl: "https://ex.com", plan: "yearly", currency: "cny" }, "203.0.113.100");
+    check("sub-order valid -> 200", s1.status === 200, String(s1.status));
+    check("sub-order returns SUB id", /^SUB-[0-9A-F]{6,}$/.test(s1.json?.orderId || ""), s1.json?.orderId);
+    check("sub-order prices yearly CNY 500", s1.json?.price === 500, String(s1.json?.price));
+    check("sub-order months = 12", s1.json?.months === 12, String(s1.json?.months));
+    check("sub-order manual/fallback reflects channel status", s1.json?.manual === true || s1.json?.onlineCheckoutAvailable === false);
+    const s2 = await postSub({ email: "subs@ex.com", siteUrl: "https://ex.com", plan: "monthly", currency: "usd" }, "203.0.113.101");
+    check("sub-order monthly USD 9.9", s2.json?.price === 9.9, String(s2.json?.price));
+    const s3 = await postSub({ email: "subs@ex.com", siteUrl: "https://ex.com", plan: "enterprise" }, "203.0.113.102");
+    check("sub-order rejects unknown plan -> 400", s3.status === 400, String(s3.status));
+    const s4 = await postSub({ email: "bad", siteUrl: "https://ex.com", plan: "yearly" }, "203.0.113.103");
+    check("sub-order rejects bad email -> 400", s4.status === 400, String(s4.status));
+
+    console.log("\nMethod guards");
     const l = await get("/api/geo-order");
     check("GET /api/geo-order -> 405", l.status === 405, String(l.status));
+    const l2 = await get("/api/sub-order");
+    check("GET /api/sub-order -> 405", l2.status === 405, String(l2.status));
 
     console.log("\nRate limiting (dedicated IP, exhausts its budget, runs last)");
     const spamIp = "198.51.100.77";

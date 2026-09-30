@@ -1,29 +1,26 @@
 import type { Metadata } from "next";
-import { GeoSubOrder } from "@/components/GeoSubOrder";
+
+import { SubOrder } from "@/components/SubOrder";
+import { paymentChannels, anyChannelLive } from "@/lib/payments";
+import { PLANS, PLAN_ORDER, FREE_TIER_COPY, formatPrice } from "@/lib/pricing";
 
 export const metadata: Metadata = {
-  title: "季度复审订阅 — 三个季度的 AI 可见度曲线",
+  title: "订阅 AI 可见度审计 — 10 次免费起步",
   description:
-    "每季自动复审你的官网 AI 可读性，与上一季逐项对比，给你三个季度的分数曲线与回归预警。不卖排名，只报告可复现的变化。",
+    "10 次免费审计起步。按月 ¥60 / $9.9，按季 ¥150 / $25，按年 ¥500 / $99。推荐付费用户可获赠额度。不卖排名，只报告可复现的变化。",
   robots: { index: false, follow: false },
 };
 
-const STEPS = [
-  {
-    t: "首季：建立基线",
-    d: "自动发现你官网 6-8 个关键页面，逐页跑 11 项检查，落一份基线快照。这一份之后永远是你的对照基准。",
-  },
-  {
-    t: "每季：自动复审并对比",
-    d: "同一批页面重跑一遍，逐项与上一季对比：哪些已修复、哪些退步、哪些是新冒出来的。只报告变化，不重复堆砌没变的项。",
-  },
-  {
-    t: "任一季：给你曲线",
-    d: "累积三个季度后，你会得到一条自己的分数曲线——竞对拿不到这个，因为它只有现在这一份分数。",
-  },
-];
+/**
+ * Pricing is rendered server-side from the same table the order endpoint
+ * charges from, so what this page shows and what the customer is billed
+ * cannot drift apart.
+ */
 
 export default function GeoSubscribePage() {
+  const channels = paymentChannels();
+  const onlineLive = anyChannelLive();
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-slate-200 bg-white">
@@ -33,85 +30,182 @@ export default function GeoSubscribePage() {
           </span>
           <nav className="flex items-center gap-6 text-sm font-medium text-slate-600">
             <a href="/geo" className="hover:text-slate-900">单次报告</a>
-            <a href="#how" className="hover:text-slate-900">怎么运作</a>
+            <a href="#pricing" className="hover:text-slate-900">价格</a>
+            <a href="#referral" className="hover:text-slate-900">推荐奖励</a>
             <a href="#order" className="hover:text-slate-900">订阅</a>
           </nav>
         </div>
       </header>
 
       <main className="flex-1">
-        <section id="how" className="mx-auto max-w-6xl px-6 py-12">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-              一次审计是一张快照。订阅给你的是一条曲线。
-            </h1>
-            <p className="mt-4 text-lg leading-relaxed text-slate-600">
-              单次报告告诉你「现在多少分」。它不告诉你两件事：上季度是多少分，
-              以及你上季度做的改动到底有没有用。季度复审订阅就是为了补上这两点——
-              每季自动重跑同一批页面，逐项对比上一季，并把累积的变化画成曲线。
-            </p>
-            <p className="mt-3 text-sm text-slate-500">
-              依然不承诺任何排名。模型输出是采样的，我们只报告可复现的输入侧分数变化。
-            </p>
-          </div>
+        {/* Pricing */}
+        <section id="pricing" className="mx-auto max-w-6xl px-6 py-12">
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+            10 次免费起步，之后按月或按年订阅。
+          </h1>
+          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-slate-600">
+            免费额度覆盖单页审计和 11 项可读性检查。订阅多出来的是季度对比与变化曲线——
+            一次审计是一张快照，订阅给你的是一条曲线。
+          </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <div key={s.t} className="rounded-2xl border border-slate-200 bg-white p-5">
-                <div className="text-xs font-semibold text-slate-400">第 {i + 1} 步</div>
-                <h2 className="mt-1.5 font-semibold text-slate-900">{s.t}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{s.d}</p>
-              </div>
-            ))}
+            {PLAN_ORDER.map((id) => {
+              const p = PLANS[id];
+              return (
+                <div
+                  key={id}
+                  className={
+                    id === "yearly"
+                      ? "rounded-2xl border-2 border-slate-900 bg-white p-6"
+                      : "rounded-2xl border border-slate-200 bg-white p-6"
+                  }
+                >
+                  {id === "yearly" && (
+                    <div className="text-xs font-semibold tracking-wide text-slate-900">
+                      推荐
+                    </div>
+                  )}
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <h2 className="font-semibold text-slate-900">
+                      {p.label.cny} / {p.label.usd}
+                    </h2>
+                  </div>
+                  <div className="mt-3 space-y-1">
+                    <p className="text-2xl font-bold text-slate-900">
+                      {formatPrice(p.price.cny, "cny")}
+                      <span className="ml-2 text-base font-medium text-slate-500">
+                        / {p.months} 个月
+                      </span>
+                    </p>
+                    <p className="text-2xl font-bold text-slate-900">
+                      {formatPrice(p.price.usd, "usd")}
+                      <span className="ml-2 text-base font-medium text-slate-500">
+                        / {p.months} months
+                      </span>
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      折合每月 {formatPrice(p.monthlyEquivalent.cny, "cny")} /{" "}
+                      {formatPrice(p.monthlyEquivalent.usd, "usd")}
+                    </p>
+                  </div>
+                  <ul className="mt-4 space-y-1.5 text-sm text-slate-600">
+                    <li>• 官网根页 + 关键页面审计</li>
+                    <li>• 与上一周期逐项对比</li>
+                    <li>• 分数曲线与回归提醒</li>
+                  </ul>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-6">
-            <h2 className="font-semibold text-slate-900">为什么这条曲线值钱</h2>
-            <ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-600">
-              <li>
-                • <span className="font-medium text-slate-900">基线是你的资产。</span>
-                {" "}
-                首季那份快照会被留存，之后每一季都拿它做对照。别人只能给你当前分数。
-              </li>
-              <li>
-                • <span className="font-medium text-slate-900">回归会被抓到。</span>
-                {" "}
-                改完某处导致别处掉分，季度对比会把它单独列出来；只测一次是发现不了的。
-              </li>
-              <li>
-                • <span className="font-medium text-slate-900">报告只列变化项。</span>
-                {" "}
-                没变的项不重复占篇幅，你打开就能看到这季该动哪里。
-              </li>
-            </ul>
+          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+            <p className="font-semibold text-emerald-900">
+              {FREE_TIER_COPY.cny.headline}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-emerald-800">
+              {FREE_TIER_COPY.cny.detail}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-emerald-800">
+              <span className="font-medium">English:</span> {FREE_TIER_COPY.usd.detail}
+            </p>
           </div>
         </section>
 
-        <section id="order" className="mx-auto max-w-6xl px-6 pb-16">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <GeoSubOrder />
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm leading-relaxed text-slate-600">
-              <h3 className="text-lg font-semibold text-slate-900">先看样板再决定</h3>
-              <p className="mt-3">
-                我们公开吉客云 35/100、卖家精灵 52/100 的一页样板，测评项、权重、扣分理由
-                都写在里面，不藏。你可以直接对着样板判断这个分数对你有没有意义。
-              </p>
-              <p className="mt-3">
-                如果你只想测一次，不需要订阅，直接下单单次报告即可；订阅是从第二个季度开始体现价值的。
-              </p>
-              <p className="mt-3">
-                取消：每季结束前书面通知下季不续即可，无违约条款。已交付季次不退。
-              </p>
-              <p className="mt-3 text-xs text-slate-500">
-                付款方式与单次报告一致：转账并备注订单号，我们人工确认后开始建立基线。
-                本页面不自动发送邮件。
-              </p>
-              <a
-                href="/geo"
-                className="mt-5 inline-block rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
-              >
-                改看单次报告（¥1999）
-              </a>
+        {/* Referral */}
+        <section id="referral" className="border-t border-slate-200 bg-white py-12">
+          <div className="mx-auto max-w-4xl px-6">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">推荐奖励</h2>
+            <p className="mt-2 text-slate-600">
+              推荐朋友订阅，按他实际付款的深度计奖。以下规则写明在页面上，不含糊。
+            </p>
+            <div className="mt-6 space-y-3">
+              {[
+                { c: "1 位付费满 1 个月 → 赠 1 个月", e: "1 referral paid 1+ month → +1 month" },
+                {
+                  c: "3 位各付满 1 个季度 → 赠 3 个月",
+                  e: "3 referrals each paid a quarter → +3 months",
+                },
+                { c: "10 位各付满 1 年 → 赠 1 年", e: "10 referrals each paid a year → +1 year" },
+              ].map((r) => (
+                <div
+                  key={r.c}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 px-5 py-4"
+                >
+                  <span className="font-medium text-slate-900">{r.c}</span>
+                  <span className="text-sm text-slate-500">{r.e}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Order */}
+        <section id="order" className="border-t border-slate-200 bg-slate-50 py-12">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <SubOrder />
+
+              <div className="space-y-4">
+                {/* Payment channels, rendered from live server config */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                  <h3 className="font-semibold text-slate-900">支付方式</h3>
+                  <ul className="mt-3 space-y-3">
+                    {channels.map((c) => (
+                      <li key={c.id} className="text-sm">
+                        <div className="flex items-center gap-2">
+                          <span
+                            aria-hidden="true"
+                            className={
+                              c.live
+                                ? "inline-block h-2 w-2 rounded-full bg-emerald-500"
+                                : "inline-block h-2 w-2 rounded-full bg-slate-300"
+                            }
+                          />
+                          <span className="font-medium text-slate-900">
+                            {c.label.cny} / {c.label.usd}
+                          </span>
+                          <span
+                            className={
+                              c.live
+                                ? "text-xs text-emerald-700"
+                                : "text-xs text-slate-500"
+                            }
+                          >
+                            {c.live ? "已开通" : "开通中"}
+                          </span>
+                        </div>
+                        <p className="mt-1 pl-4 text-xs leading-relaxed text-slate-500">
+                          {c.blockedOn || c.customerMessage.cny}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+                    微信支付与支付宝是两套独立的清算体系：走微信付的钱结算到微信商户账户，
+                    走支付宝付的钱结算到支付宝账户，无法互相转入。
+                    {onlineLive
+                      ? "已开通的通道会在付款确认后自动开通订阅。"
+                      : "当前在线通道尚未全部开通，付款由我们人工核对到账后开通。"}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm leading-relaxed text-slate-600">
+                  <h3 className="text-lg font-semibold text-slate-900">先看样板再决定</h3>
+                  <p className="mt-3">
+                    我们公开吉客云 35/100、卖家精灵 52/100 的一页样板，测评项、权重、扣分理由
+                    都写在里面，不藏。
+                  </p>
+                  <p className="mt-3">
+                    取消：随时书面通知下期不续即可，无违约条款。已生效周期不退。
+                  </p>
+                  <a
+                    href="/geo"
+                    className="mt-4 inline-block rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
+                  >
+                    改看单次报告（¥1999 / $299）
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </section>

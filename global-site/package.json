@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node test/verify.js && node test/report.js && node test/geo-order-e2e.js",
+    "test": "node test/verify.js && node test/report.js && node test/referral-logic.js && node test/geo-order-e2e.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
