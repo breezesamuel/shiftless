@@ -1,0 +1,71 @@
+# Secrets & credentials
+.secrets/
+*.env
+*.env.local
+*.env.*.local
+
+# Pending subscriptions (processed by CI, not committed directly)
+geo/subscriptions/pending/
+
+# Local-only data & delivery (never commit)
+data/
+delivery-system/
+core/
+bounty-hooks/
+outbox/
+
+# Vercel
+.vercel
+.vercel/output
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Logs
+*.log
+server.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Data & delivery (local only)
+data/
+delivery-system/
+core/
+bounty-hooks/
+
+# Chinese draft docs (local only)
+*_GitHub*.md
+*_实操*.md
+*_落地*.md
+*_执行*.md
+
+# Task runner state
+deploy/task-runner/jobs/
+deploy/task-runner/*.pid
+
+# Test outputs
+test-results/
+coverage/
