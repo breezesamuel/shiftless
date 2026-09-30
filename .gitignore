@@ -69,3 +69,4 @@ deploy/task-runner/*.pid
 # Test outputs
 test-results/
 coverage/github-workflows/
+global-site/tsconfig.tsbuildinfo
