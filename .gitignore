@@ -4,7 +4,10 @@
 *.env.local
 *.env.*.local
 
-# Pending subscriptions (processed by CI, not committed directly)
+# Pending subscriptions: never committed.
+# Subscription activation is manual after payment is confirmed
+# (add the site to geo/subscriptions/subscribers.json by hand).
+# Vercel functions cannot write this directory — the filesystem is read-only.
 geo/subscriptions/pending/
 
 # Local-only data & delivery (never commit)
@@ -68,5 +71,10 @@ deploy/task-runner/*.pid
 
 # Test outputs
 test-results/
-coverage/github-workflows/
+coverage/
+
+# Vercel CLI scratch dir created by `vercel git connect`
+github-workflows/
+
+# TypeScript incremental build cache
 global-site/tsconfig.tsbuildinfo
