@@ -4,5 +4,11 @@
       "path": "/api/quarterly-recheck",
       "schedule": "0 18 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "src/app/api/quarterly-recheck/route.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
 }
