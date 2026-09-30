@@ -1,0 +1,5 @@
+﻿# E2E 竞品调研：两个可公开抓取的 web 服务器/网关产品做对比样例
+https://www.nginx.com/
+https://httpd.apache.org/
+# 故意放一个反爬/失败站点测试 DATA-GAP 降级
+https://www.g2.com/products/nginx/reviews

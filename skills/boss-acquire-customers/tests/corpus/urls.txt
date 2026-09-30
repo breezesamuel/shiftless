@@ -1,0 +1,4 @@
+﻿# 测试：竞品调研示例
+https://quotes.toscrape.com/
+http://quotes.toscrape.com/page/2/
+https://www.python.org/about/

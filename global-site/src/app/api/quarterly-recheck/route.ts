@@ -327,6 +327,26 @@ async function handle(req: Request) {
     if (req.headers.get("authorization") !== `Bearer ${CRON_SECRET}`) {
       return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
     }
+
+    // If-None-Match: skip the expensive audit if baseline hasn't changed.
+    // ETag format: "quarter|host1:score1|host2:score2|..."
+    const all = listSubscribers();
+    if (all.length > 0 && !forced) {
+      let etagParts = [quarterOf(new Date())];
+      for (const sub of all.slice(0, MAX_SITES)) {
+        const host = hostOf(sub.url);
+        if (!host) continue;
+        const base = await loadBaseline(origin, host);
+        if (base) {
+          const basePage = base.pages.find((p) => new URL(p.url).pathname === "/") || base.pages[0];
+          etagParts.push(`${host}:${basePage.score}:${base.quarter}`);
+        }
+      }
+      const etag = `"${etagParts.join("|")}"`;
+      if (req.headers.get("if-none-match") === etag) {
+        return new NextResponse(null, { status: 304, headers: { ETag: etag } });
+      }
+    }
   }
 
   const now = new Date();
