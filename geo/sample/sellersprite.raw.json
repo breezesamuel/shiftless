@@ -1,0 +1,153 @@
+﻿{
+  "url": "https://www.sellersprite.com/cn",
+  "fetchedAt": "2026-09-30T02:55:27.682Z",
+  "httpStatus": 200,
+  "score": 52,
+  "band": "Mostly opaque",
+  "checks": [
+    {
+      "id": "robots",
+      "label": "AI crawler access",
+      "weight": 15,
+      "score": 15,
+      "detail": "No AI-crawler rules found. All 13 fall through to the wildcard/default rule 鈥?check what '*' resolves to."
+    },
+    {
+      "id": "jsonld",
+      "label": "Structured data (JSON-LD)",
+      "weight": 15,
+      "score": 6,
+      "detail": "2 type(s): WebSite, Organization"
+    },
+    {
+      "id": "schema-identity",
+      "label": "Identity + FAQ schema",
+      "weight": 10,
+      "score": 5,
+      "detail": "鉁?Organization/Corporation (who you are) 路 鉁?FAQPage (question/answer pairs 鈥?the format models quote most)"
+    },
+    {
+      "id": "schema-content",
+      "label": "Product/service + article schema",
+      "weight": 5,
+      "score": 0,
+      "detail": "鉁?Product/Service 路 鉁?Article/BlogPosting"
+    },
+    {
+      "id": "llms",
+      "label": "llms.txt",
+      "weight": 5,
+      "score": 0,
+      "detail": "Not present. Emerging convention; low cost, no downside, currently enforced by nobody."
+    },
+    {
+      "id": "headings",
+      "label": "Heading structure",
+      "weight": 10,
+      "score": 6,
+      "detail": "1 脳 h1, 11 脳 h2, 10 脳 h3"
+    },
+    {
+      "id": "questions",
+      "label": "Question-form headings",
+      "weight": 10,
+      "score": 0,
+      "detail": "None. These match the shape of the questions people ask an assistant, and they are the cheapest thing on this list to fix."
+    },
+    {
+      "id": "eeat",
+      "label": "Authorship and dates",
+      "weight": 8,
+      "score": 0,
+      "detail": "鉁?named author/reviewer 路 鉁?publish or update date. Unattributed, undated claims get skipped in favour of a source that signs its work."
+    },
+    {
+      "id": "depth",
+      "label": "Content depth on this page",
+      "weight": 5,
+      "score": 5,
+      "detail": "~1054 words"
+    },
+    {
+      "id": "citations",
+      "label": "Outbound citations",
+      "weight": 7,
+      "score": 7,
+      "detail": "23 external domain(s) referenced: sellersprite.ai, sellersprite.jp, www.sellerspace.com, www.kolsprite.com, www.voc.ai鈥? Pages that cite primary sources are more likely to be trusted as references."
+    },
+    {
+      "id": "social",
+      "label": "Open Graph",
+      "weight": 5,
+      "score": 5,
+      "detail": "Complete."
+    }
+  ],
+  "aiCrawlerAccess": [
+    {
+      "ua": "GPTBot",
+      "owner": "OpenAI (training + retrieval)",
+      "state": "default"
+    },
+    {
+      "ua": "OAI-SearchBot",
+      "owner": "OpenAI (ChatGPT search)",
+      "state": "default"
+    },
+    {
+      "ua": "ChatGPT-User",
+      "owner": "OpenAI (user-triggered fetch)",
+      "state": "default"
+    },
+    {
+      "ua": "ClaudeBot",
+      "owner": "Anthropic",
+      "state": "default"
+    },
+    {
+      "ua": "Claude-User",
+      "owner": "Anthropic (user-triggered fetch)",
+      "state": "default"
+    },
+    {
+      "ua": "Claude-SearchBot",
+      "owner": "Anthropic (search)",
+      "state": "default"
+    },
+    {
+      "ua": "PerplexityBot",
+      "owner": "Perplexity",
+      "state": "default"
+    },
+    {
+      "ua": "Google-Extended",
+      "owner": "Google (Gemini grounding)",
+      "state": "default"
+    },
+    {
+      "ua": "Applebot-Extended",
+      "owner": "Apple Intelligence",
+      "state": "default"
+    },
+    {
+      "ua": "Bytespider",
+      "owner": "ByteDance (Doubao)",
+      "state": "default"
+    },
+    {
+      "ua": "CCBot",
+      "owner": "Common Crawl 鈥?upstream of most of the above",
+      "state": "default"
+    },
+    {
+      "ua": "Baiduspider",
+      "owner": "Baidu (鏂囧績涓€瑷€)",
+      "state": "default"
+    },
+    {
+      "ua": "Bytespider-Google",
+      "owner": "ByteDance on Google infra",
+      "state": "default"
+    }
+  ]
+}

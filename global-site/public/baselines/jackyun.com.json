@@ -1,0 +1,593 @@
+{
+  "host": "jackyun.com",
+  "url": "https://www.jackyun.com",
+  "quarter": "2026-Q3-r2",
+  "createdAt": "2026-09-30T06:53:02.193Z",
+  "overall": 38,
+  "pages": [
+    {
+      "url": "https://www.jackyun.com/",
+      "ok": true,
+      "score": 35,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 3
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 3
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 7
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/erp.html",
+      "ok": true,
+      "score": 31,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 3
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/products/erp-legacy.html",
+      "ok": true,
+      "score": 62,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 5
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 3
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 4
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 5
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/solutions.html",
+      "ok": true,
+      "score": 28,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/solutions/ecommerce.html",
+      "ok": true,
+      "score": 64,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 5
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 3
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 4
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 3
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 5
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/solutions/scm.html",
+      "ok": true,
+      "score": 28,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/pages/jmRobot.html",
+      "ok": true,
+      "score": 28,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/solutions/cross-border.html",
+      "ok": true,
+      "score": 28,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0
+        }
+      ]
+    }
+  ]
+}

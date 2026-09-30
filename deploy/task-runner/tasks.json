@@ -1,0 +1,38 @@
+{
+  "hello": {
+    "cmd": "node",
+    "args": ["-e", "console.log('pong @ ' + new Date().toISOString())"]
+  },
+  "audit": {
+    "cmd": "node",
+    "args": ["{geo}/audit.js", "{url}", "--json"]
+  },
+  "report": {
+    "cmd": "node",
+    "args": ["{geo}/full-report.js", "{url}", "{workspace}/reports"]
+  },
+  "report-fixes": {
+    "cmd": "node",
+    "args": ["{geo}/full-report.js", "{url}", "{workspace}/reports", "--fixes"]
+  },
+  "sub-init": {
+    "cmd": "node",
+    "args": ["{geo}/quarterly.js", "--init", "{url}"],
+    "cwd": "{geo}"
+  },
+  "sub-verify": {
+    "cmd": "node",
+    "args": ["{geo}/quarterly.js", "--verify", "--baseline={geo}/subscriptions/{host}/snapshots/{file}"],
+    "cwd": "{geo}"
+  },
+  "batch100": {
+    "cmd": "node",
+    "args": ["{geo}/batch-audit.js", "{geo}/targets-100.json"],
+    "cwd": "{geo}"
+  },
+  "selftest": {
+    "cmd": "node",
+    "args": ["{geo}/quarterly-selftest.js"],
+    "cwd": "{geo}"
+  }
+}

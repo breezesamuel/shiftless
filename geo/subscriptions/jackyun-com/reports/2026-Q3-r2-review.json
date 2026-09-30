@@ -1,0 +1,200 @@
+{
+  "quarter": "2026-Q3-r2",
+  "prevQuarter": "2026-Q3",
+  "before": 38,
+  "after": 38,
+  "totalDelta": 0,
+  "tally": {
+    "resolved": 0,
+    "improved": 0,
+    "regressed": 0,
+    "declined": 0,
+    "unchanged": 88,
+    "untested": 0,
+    "new": 0,
+    "missing": 0
+  },
+  "verdict": "本季无变化",
+  "stillOpen": [
+    {
+      "label": "Structured data (JSON-LD)",
+      "weight": 15,
+      "after": 0,
+      "url": "https://www.jackyun.com/"
+    },
+    {
+      "label": "Structured data (JSON-LD)",
+      "weight": 15,
+      "after": 0,
+      "url": "https://www.jackyun.com/erp.html"
+    },
+    {
+      "label": "Structured data (JSON-LD)",
+      "weight": 15,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions.html"
+    },
+    {
+      "label": "Structured data (JSON-LD)",
+      "weight": 15,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions/scm.html"
+    },
+    {
+      "label": "Structured data (JSON-LD)",
+      "weight": 15,
+      "after": 0,
+      "url": "https://www.jackyun.com/pages/jmRobot.html"
+    },
+    {
+      "label": "Structured data (JSON-LD)",
+      "weight": 15,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions/cross-border.html"
+    },
+    {
+      "label": "Identity + FAQ schema",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/"
+    },
+    {
+      "label": "Heading structure",
+      "weight": 10,
+      "after": 3,
+      "url": "https://www.jackyun.com/"
+    },
+    {
+      "label": "Question-form headings",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/"
+    },
+    {
+      "label": "Identity + FAQ schema",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/erp.html"
+    },
+    {
+      "label": "Heading structure",
+      "weight": 10,
+      "after": 6,
+      "url": "https://www.jackyun.com/erp.html"
+    },
+    {
+      "label": "Question-form headings",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/erp.html"
+    },
+    {
+      "label": "Identity + FAQ schema",
+      "weight": 10,
+      "after": 5,
+      "url": "https://www.jackyun.com/products/erp-legacy.html"
+    },
+    {
+      "label": "Heading structure",
+      "weight": 10,
+      "after": 6,
+      "url": "https://www.jackyun.com/products/erp-legacy.html"
+    },
+    {
+      "label": "Question-form headings",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/products/erp-legacy.html"
+    },
+    {
+      "label": "Identity + FAQ schema",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions.html"
+    },
+    {
+      "label": "Heading structure",
+      "weight": 10,
+      "after": 6,
+      "url": "https://www.jackyun.com/solutions.html"
+    },
+    {
+      "label": "Question-form headings",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions.html"
+    },
+    {
+      "label": "Identity + FAQ schema",
+      "weight": 10,
+      "after": 5,
+      "url": "https://www.jackyun.com/solutions/ecommerce.html"
+    },
+    {
+      "label": "Heading structure",
+      "weight": 10,
+      "after": 6,
+      "url": "https://www.jackyun.com/solutions/ecommerce.html"
+    },
+    {
+      "label": "Question-form headings",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions/ecommerce.html"
+    },
+    {
+      "label": "Identity + FAQ schema",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions/scm.html"
+    },
+    {
+      "label": "Heading structure",
+      "weight": 10,
+      "after": 6,
+      "url": "https://www.jackyun.com/solutions/scm.html"
+    },
+    {
+      "label": "Question-form headings",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions/scm.html"
+    },
+    {
+      "label": "Identity + FAQ schema",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/pages/jmRobot.html"
+    },
+    {
+      "label": "Heading structure",
+      "weight": 10,
+      "after": 6,
+      "url": "https://www.jackyun.com/pages/jmRobot.html"
+    },
+    {
+      "label": "Question-form headings",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/pages/jmRobot.html"
+    },
+    {
+      "label": "Identity + FAQ schema",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions/cross-border.html"
+    },
+    {
+      "label": "Heading structure",
+      "weight": 10,
+      "after": 6,
+      "url": "https://www.jackyun.com/solutions/cross-border.html"
+    },
+    {
+      "label": "Question-form headings",
+      "weight": 10,
+      "after": 0,
+      "url": "https://www.jackyun.com/solutions/cross-border.html"
+    }
+  ]
+}

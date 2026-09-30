@@ -1,0 +1,507 @@
+// Prisma Schema for Monetization Aggregator Platform
+// Combines models from top monetization platforms
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// User & Authentication
+// ============================================================================
+
+enum UserRole {
+  FREE
+  PRO
+  ENTERPRISE
+  ADMIN
+}
+
+model User {
+  id              String    @id @default(uuid())
+  email           String    @unique
+  emailVerified   DateTime?
+  name            String?
+  avatar          String?
+  passwordHash    String?
+  role            UserRole  @default(FREE)
+  walletAddress   String?   @unique
+  alipayUserId    String?   @unique
+  referralCode    String    @unique @default(dbgenerated("gen_random_uuid()")) @db.VarChar(8)
+  referredById    String?
+  referredBy      User?     @relation("Referrals", fields: [referredById], references: [id])
+  referrals       User[]    @relation("Referrals")
+  subscription    Subscription?
+  orders          Order[]
+  referralsMade   Referral[] @relation("Referrer")
+  referralsReceived Referral[] @relation("Referred")
+  skills          Skill[]   @relation("SkillPublisher")
+  products        Product[] @relation("ProductPublisher")
+  transactions    Transaction[]
+  sessions        Session[]
+  apiKeys         ApiKey[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([referralCode])
+  @@index([walletAddress])
+  @@index([alipayUserId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token        String   @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+model ApiKey {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  keyHash     String   @unique
+  keyPrefix   String
+  permissions String[]
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([keyHash])
+}
+
+// ============================================================================
+// Products & Services
+// ============================================================================
+
+enum ProductCategory {
+  TOOLS
+  API
+  SKILLS
+  TEMPLATES
+  COURSES
+  HOSTING
+  ANALYTICS
+  SUBSCRIPTION_AGGREGATION
+  BUNDLED_SERVICES
+  DESKTOP_APPS
+  PRODUCTIVITY_SUITE
+  API_MARKETPLACE
+}
+
+enum PricingModel {
+  SUBSCRIPTION
+  PAY_PER_USE
+  ONE_TIME
+  FREEMIUM
+  COMMISSION
+  LICENSE
+  SUBSCRIPTION_AGGREGATION
+  BUNDLED_SERVICES
+}
+
+enum ProductStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  REJECTED
+  ARCHIVED
+}
+
+model Product {
+  id                  String        @id @default(uuid())
+  slug                String        @unique
+  name                String
+  description         String        @db.Text
+  shortDescription    String
+  category            ProductCategory
+  pricingModel        PricingModel
+  priceAmount         Decimal       @db.Decimal(19, 4)
+  priceCurrency       String        @default("USD")
+  priceInterval       String?
+  trialDays           Int?
+  originalPriceAmount Decimal?      @db.Decimal(19, 4)
+  originalPriceCurrency String?     @default("USD")
+  images              String[]
+  features            String[]
+  tags                String[]
+  publisherId         String
+  publisher           User          @relation("ProductPublisher", fields: [publisherId], references: [id])
+  publisherName       String
+  publisherVerified   Boolean       @default(false)
+  rating              Float         @default(0)
+  reviewCount         Int           @default(0)
+  salesCount          Int           @default(0)
+  revenue             Decimal       @default(0) @db.Decimal(19, 4)
+  commissionRate      Float         @default(0.15)
+  affiliateCommission Float         @default(0.10)
+  status              ProductStatus @default(DRAFT)
+  x402Enabled         Boolean       @default(false)
+  x402Network         String?
+  x402FacilitatorUrl  String?
+  x402PricePerCall    String?
+  x402PayTo           String?
+  x402ResourceUrl     String?
+  metadata            Json          @default("{}")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  publishedAt         DateTime?
+
+  orders              Order[]
+  reviews             Review[]
+
+  @@index([publisherId])
+  @@index([category])
+  @@index([status])
+  @@index([slug])
+  @@index([tags])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?  @db.Text
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+}
+
+// ============================================================================
+// Subscriptions
+// ============================================================================
+
+enum SubscriptionTier {
+  FREE
+  STARTER
+  PRO
+  TEAM
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  PAUSED
+  EXPIRED
+}
+
+model Subscription {
+  id                    String            @id @default(uuid())
+  userId                String            @unique
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tier                  SubscriptionTier  @default(FREE)
+  status                SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart    DateTime          @default(now())
+  currentPeriodEnd      DateTime
+  cancelAtPeriodEnd     Boolean           @default(false)
+  trialEnd              DateTime?
+  alipaySubscriptionId  String?           @unique
+  x402SubscriptionId    String?           @unique
+  metadata              Json              @default("{}")
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([alipaySubscriptionId])
+  @@index([x402SubscriptionId])
+}
+
+// ============================================================================
+// Affiliate / Referral System
+// ============================================================================
+
+enum ReferralTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+}
+
+enum ReferralStatus {
+  PENDING
+  CONFIRMED
+  PAID
+  REVERSED
+}
+
+model Referral {
+  id                   String        @id @default(uuid())
+  referrerId           String
+  referrer             User          @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId           String
+  referred             User          @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+  productId            String?
+  product              Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  commissionAmount     Decimal       @default(0) @db.Decimal(19, 4)
+  commissionCurrency   String        @default("USD")
+  status               ReferralStatus @default(PENDING)
+  tierAtReferral       ReferralTier
+  clickedAt            DateTime      @default(now())
+  convertedAt          DateTime?
+  paidAt               DateTime?
+  metadata             Json          @default("{}")
+
+  @@index([referrerId])
+  @@index([referredId])
+  @@index([productId])
+  @@index([status])
+}
+
+// ============================================================================
+// Orders & Transactions
+// ============================================================================
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  DISPUTED
+}
+
+enum PaymentMethod {
+  ALIPAY
+  X402
+  STRIPE
+  BALANCE
+  FREE
+}
+
+model Order {
+  id                 String        @id @default(uuid())
+  userId             String
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity           Int           @default(1)
+  unitPriceAmount    Decimal       @db.Decimal(19, 4)
+  unitPriceCurrency  String        @default("USD")
+  totalPriceAmount   Decimal       @db.Decimal(19, 4)
+  totalPriceCurrency String        @default("USD")
+  status             OrderStatus   @default(PENDING)
+  paymentMethod      PaymentMethod
+  paymentId          String?
+  x402PaymentPayload String?
+  affiliateId        String?
+  commissionAmount   Decimal       @default(0) @db.Decimal(19, 4)
+  metadata           Json          @default("{}")
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  completedAt        DateTime?
+
+  @@index([userId])
+  @@index([productId])
+  @@index([status])
+  @@index([paymentId])
+  @@index([affiliateId])
+}
+
+enum TransactionType {
+  PAYMENT
+  REFUND
+  COMMISSION
+  PAYOUT
+  BONUS
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+model Transaction {
+  id                String            @id @default(uuid())
+  orderId           String?
+  order             Order?            @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              TransactionType
+  amount            Decimal           @db.Decimal(19, 4)
+  currency          String            @default("USD")
+  status            TransactionStatus @default(PENDING)
+  blockchainTxHash  String?           @unique
+  alipayTradeNo     String?           @unique
+  description       String
+  metadata          Json              @default("{}")
+  createdAt         DateTime          @default(now())
+  completedAt       DateTime?
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([type])
+  @@index([status])
+  @@index([blockchainTxHash])
+  @@index([alipayTradeNo])
+}
+
+// ============================================================================
+// AI Skills Marketplace
+// ============================================================================
+
+enum SkillCategory {
+  PAYMENT
+  API
+  AUTOMATION
+  DATA
+  CONTENT
+  ANALYSIS
+  OTHER
+}
+
+enum SkillLicenseType {
+  PERSONAL
+  COMMERCIAL
+  ENTERPRISE
+  OPEN_SOURCE
+}
+
+enum SkillStatus {
+  DRAFT
+  REVIEW
+  ACTIVE
+  DEPRECATED
+}
+
+model Skill {
+  id               String            @id @default(uuid())
+  slug             String            @unique
+  name             String
+  description      String            @db.Text
+  category         SkillCategory
+  priceAmount      Decimal           @db.Decimal(19, 4)
+  priceCurrency    String            @default("USD")
+  licenseType      SkillLicenseType
+  repositoryUrl    String?
+  documentationUrl String?
+  demoUrl          String?
+  tags             String[]
+  publisherId      String
+  publisher        User              @relation("SkillPublisher", fields: [publisherId], references: [id])
+  publisherName    String
+  rating           Float             @default(0)
+  installCount     Int               @default(0)
+  revenue          Decimal           @default(0) @db.Decimal(19, 4)
+  status           SkillStatus       @default(DRAFT)
+  mcpCompatible    Boolean           @default(false)
+  mcpConfig        Json?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([publisherId])
+  @@index([category])
+  @@index([status])
+  @@index([slug])
+  @@index([tags])
+}
+
+// ============================================================================
+// x402 Payment & Bazaar
+// ============================================================================
+
+model X402Payment {
+  id                String   @id @default(uuid())
+  orderId           String   @unique
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentPayload    String   @db.Text
+  paymentRequirements Json
+  network           String
+  asset             String
+  amount            String   // Base units
+  payTo             String
+  facilitatorUrl    String
+  verified          Boolean  @default(false)
+  settledAt         DateTime?
+  bazaarListed      Boolean  @default(false)
+  bazaarListedAt    DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([network])
+  @@index([verified])
+}
+
+// ============================================================================
+// Analytics & Events
+// ============================================================================
+
+model AnalyticsEvent {
+  id           String   @id @default(uuid())
+  userId       String?
+  anonymousId  String?
+  event        String
+  properties   Json     @default("{}")
+  context      Json?
+  timestamp    DateTime @default(now())
+
+  @@index([userId])
+  @@index([event])
+  @@index([timestamp])
+  @@index([anonymousId])
+}
+
+// ============================================================================
+// Payouts (for affiliates/creators)
+// ============================================================================
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELED
+}
+
+enum PayoutMethod {
+  ALIPAY
+  USDC
+  BANK_TRANSFER
+  PAYPAL
+  WISE
+}
+
+model Payout {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Decimal       @db.Decimal(19, 4)
+  currency        String        @default("USD")
+  method          PayoutMethod
+  destination     String        // wallet address, email, bank details
+  status          PayoutStatus  @default(PENDING)
+  transactionHash String?
+  metadata        Json          @default("{}")
+  requestedAt     DateTime      @default(now())
+  processedAt     DateTime?
+  completedAt     DateTime?
+
+  @@index([userId])
+  @@index([status])
+}

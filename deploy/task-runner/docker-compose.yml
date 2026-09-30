@@ -1,0 +1,16 @@
+services:
+  task-runner:
+    build: .
+    container_name: task-runner
+    restart: always
+    environment:
+      PORT: 8080
+      TASK_TOKEN: change-me-strong
+      WORKSPACE: /app
+      GEO_DIR: /app/geo
+    volumes:
+      - ./jobs:/app/jobs
+      - ./reports:/app/reports
+      - ./geo:/app/geo
+    ports:
+      - "8080:8080"

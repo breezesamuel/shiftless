@@ -1,0 +1,125 @@
+name: quarterly-recheck
+
+# 这个工作流跑在 GitHub 的服务器上，与你的电脑是否开机完全无关。
+# 这是「电脑关了也照样运转」的唯一可靠实现。
+
+on:
+  schedule:
+    # cron 是 UTC 时间。每季度首日 01:17 UTC 跑一次（避开整点，减少排队）
+    - cron: "17 1 1 1,4,7,10 *"
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "要复审的站点 URL（留空则用订阅清单里的全部站点）"
+        required: false
+        type: string
+      baseline:
+        description: "基线快照文件名（留空 = 取该站最近一次快照）"
+        required: false
+        type: string
+
+concurrency:
+  group: quarterly-recheck
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  recheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 自检（先证明引擎本身是对的，再去跑真实客户）
+        run: node geo/quarterly-selftest.js https://www.jackyun.com
+
+      - name: 列出订阅站点
+        id: sites
+        run: |
+          set -e
+          mkdir -p geo/subscriptions
+          if [ ! -f geo/subscriptions/subscribers.json ]; then
+            echo '[]' > geo/subscriptions/subscribers.json
+          fi
+          echo "sites<<EOF" >> "$GITHUB_OUTPUT"
+          cat geo/subscriptions/subscribers.json >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: 逐站复审
+        run: |
+          set -euo pipefail
+          INPUT_URL="${{ github.event.inputs.url }}"
+          INPUT_BASE="${{ github.event.inputs.baseline }}"
+          FAILED=0
+          RAN=0
+
+          if [ -n "$INPUT_URL" ]; then
+            echo "::notice::手动指定站点 $INPUT_URL"
+            ARGS="--verify"
+            [ -n "$INPUT_BASE" ] && ARGS="$ARGS --baseline=geo/subscriptions/$(echo "$INPUT_URL" | sed -E 's#^https?://##; s#^www\.##; s#\.#-#g')/snapshots/$INPUT_BASE"
+            node geo/quarterly.js $ARGS || FAILED=$((FAILED+1))
+            RAN=$((RAN+1))
+          else
+            # 从订阅清单读站点。没有清单就是空跑，不假装成功。
+            URLS=$(node -e "const s=require('./geo/subscriptions/subscribers.json'); console.log(s.map(x=>x.url).join('\n'))")
+            if [ -z "$URLS" ]; then
+              echo "::notice::订阅清单为空，本次无任务。这是正常状态，不算失败。"
+              exit 0
+            fi
+            while IFS= read -r u; do
+              [ -z "$u" ] && continue
+              echo "=== 复审 $u ==="
+              RAN=$((RAN+1))
+              # 必须把 url 传进去：quarterly.js 靠它定位该站最近一次快照
+              node geo/quarterly.js --verify "$u" || { echo "::error::$u 复审失败"; FAILED=$((FAILED+1)); }
+            done <<< "$URLS"
+          fi
+
+          echo "完成 $RAN 个站点，失败 $FAILED 个"
+          echo "RAN=$RAN" >> "$GITHUB_ENV"
+          echo "FAILED=$FAILED" >> "$GITHUB_ENV"
+
+      - name: 诚实性检查：报告必须包含诚实边界
+        if: always()
+        run: |
+          set -e
+          N=$(grep -rl "诚实边界" geo/subscriptions/*/reports/*.md 2>/dev/null | wc -l)
+          echo "含诚实边界段落的报告数: $N"
+          if [ "$N" -eq 0 ] && [ "${{ env.RAN }}" != "0" ]; then
+            echo "::error::跑了任务但没有任何报告包含诚实边界段落 —— 判定为产出异常"
+            exit 1
+          fi
+
+      - name: 归档报告为 artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarterly-reports-${{ github.run_number }}
+          path: geo/subscriptions/*/reports/
+          retention-days: 90
+
+      - name: 提交复审结果回仓库（形成时间序列）
+        if: always() && env.FAILED == 0
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add geo/subscriptions
+          if git diff --staged --quiet; then
+            echo "无变化，跳过提交"
+          else
+            git commit -m "chore(recheck): 季度复审快照 $(node -e "const d=new Date();console.log(d.getFullYear()+'-Q'+Math.floor(d.getMonth()/3)+1)")"
+            git push
+          fi
+
+      - name: 失败则标记
+        if: always() && env.FAILED != 0
+        run: echo "::error::有 ${{ env.FAILED }} 个站点复审失败"

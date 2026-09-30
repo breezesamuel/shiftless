@@ -1,0 +1,34 @@
+[Unit]
+Description=Shiftless GEO Task Runner (24/7 instruction receiver)
+Documentation=file:///opt/task-runner/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/task-runner
+ExecStart=/usr/bin/node /opt/task-runner/server.js
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=0
+
+Environment=PORT=8080
+Environment=WORKSPACE=/opt/task-runner
+Environment=GEO_DIR=/opt/task-runner/geo
+Environment=JOBS_DIR=/var/lib/task-runner/jobs
+EnvironmentFile=-/etc/task-runner/env
+
+# 日志走 journald：journalctl -u task-runner -f
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=task-runner
+
+# 最小权限加固：服务只需要写自己的 jobs 目录和 geo 目录
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/task-runner /var/lib/task-runner
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,114 @@
+name: Process pending subscriptions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "geo/subscriptions/pending/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install global-site deps
+        run: cd global-site && npm ci
+
+      - name: Install geo deps (none, uses global-site engine)
+        run: echo "geo uses global-site engine via relative require"
+
+      - name: Process pending subscriptions
+        id: process
+        run: |
+          set -euo pipefail
+          PENDING_DIR="geo/subscriptions/pending"
+          SUBSCRIBERS_FILE="geo/subscriptions/subscribers.json"
+          SUB_ROOT="geo/subscriptions"
+
+          mkdir -p "$PENDING_DIR"
+          mkdir -p "$SUB_ROOT"
+
+          if [ ! -f "$SUBSCRIBERS_FILE" ]; then
+            echo "[]" > "$SUBSCRIBERS_FILE"
+          fi
+
+          shopt -s nullglob
+          pending_files=("$PENDING_DIR"/*.json)
+          if [ ${#pending_files[@]} -eq 0 ]; then
+            echo "no pending subscriptions"
+            echo "processed=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Found ${#pending_files[@]} pending subscription(s)"
+          processed=0
+
+          for f in "${pending_files[@]}"; do
+            echo "Processing $f"
+            order=$(cat "$f")
+            url=$(echo "$order" | jq -r .siteUrl)
+            email=$(echo "$order" | jq -r .email)
+            orderId=$(echo "$order" | jq -r .orderId)
+
+            # Run quarterly.js --init to create baseline snapshot
+            echo "Running quarterly init for $url"
+            cd geo
+            node quarterly.js --init "$url" --out "$SUB_ROOT" 2>&1 || {
+              echo "quarterly init failed for $url"
+              cd ..
+              continue
+            }
+            cd ..
+
+            # Add to subscribers.json
+            tmp=$(mktemp)
+            jq --arg url "$url" --arg email "$email" \
+              'map(select(.url != $url)) + [{url: $url, email: $email}]' \
+              "$SUBSCRIBERS_FILE" > "$tmp" && mv "$tmp" "$SUBSCRIBERS_FILE"
+
+            # Publish baselines to global-site/public/baselines
+            cd global-site
+            node scripts/publish-baselines.js 2>&1 || echo "publish-baselines had warnings"
+            cd ..
+
+            # Remove pending file
+            rm "$f"
+
+            processed=$((processed + 1))
+            echo "Processed $orderId ($url)"
+          done
+
+          echo "processed=$processed" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push changes
+        if: steps.process.outputs.processed != '0'
+        run: |
+          git config user.name "shiftless-bot"
+          git config user.email "bot@shiftless.app"
+          git add geo/subscriptions/pending/ geo/subscriptions/subscribers.json geo/subscriptions/*/snapshots/ global-site/public/baselines/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: auto-process ${processed} subscription(s) [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "No changes to commit"
+          fi
+        env:
+          processed: ${{ steps.process.outputs.processed }}

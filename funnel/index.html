@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoostAI 变现矩阵 - 工具站 / x402 API / AI技能 / 分销</title>
+<meta name="description" content="880+ 在线工具订阅、按次计费 x402 付费 API、可售卖的 AI Agent 技能、最高70%推荐返佣。一个入口，四种赚钱方式。">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+  :root{--bg:#0f172a;--card:#1e293b;--card2:#172033;--acc:#22d3ee;--acc2:#a78bfa;--ok:#34d399;--tx:#e2e8f0;--m:#94a3b8;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--tx);font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.6;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px;}
+  header{padding:24px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e293b;}
+  .logo{font-weight:800;font-size:22px;letter-spacing:.5px;}
+  .logo span{color:var(--acc);}
+  nav a{color:var(--m);text-decoration:none;margin-left:20px;font-size:14px;}
+  nav a:hover{color:var(--acc);}
+  .hero{padding:70px 0 40px;text-align:center;}
+  .hero h1{font-size:42px;line-height:1.25;margin-bottom:16px;}
+  .hero h1 em{color:var(--acc);font-style:normal;}
+  .hero p{color:var(--m);font-size:18px;max-width:640px;margin:0 auto 28px;}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .btn{display:inline-block;padding:13px 26px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px;}
+  .btn-solid{background:var(--acc);color:#0f172a;}
+  .btn-ghost{border:1px solid #334155;color:var(--tx);}
+  .btn-ghost:hover{border-color:var(--acc);color:var(--acc);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;padding:40px 0;}
+  .card{background:var(--card);border:1px solid #293548;border-radius:14px;padding:26px;display:flex;flex-direction:column;transition:.2s;}
+  .card:hover{border-color:var(--acc);transform:translateY(-3px);}
+  .tag{font-size:12px;font-weight:800;letter-spacing:1px;color:var(--acc);text-transform:uppercase;margin-bottom:8px;}
+  .tag.g{color:var(--ok);}.tag.p{color:var(--acc2);}
+  .card h3{font-size:20px;margin-bottom:6px;}
+  .card p{color:var(--m);font-size:14px;flex:1;margin-bottom:16px;}
+  .price{font-size:26px;font-weight:800;margin-bottom:16px;}
+  .price small{font-size:13px;color:var(--m);font-weight:400;}
+  .price .usd{color:var(--acc);}
+  .price .cny{color:var(--ok);}
+  .card .btn{text-align:center;}
+  .band{background:linear-gradient(135deg,#1e2140,#132a35);border-radius:16px;padding:30px;margin:40px 0;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+  .band h3{font-size:22px;margin-bottom:6px;}
+  .band p{color:var(--m);font-size:14px;}
+  .band .step{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:14px 18px;flex:1;min-width:220px;}
+  .band .step b{color:var(--acc);display:block;margin-bottom:4px;}
+  footer{padding:30px 0 60px;border-top:1px solid #1e293b;margin-top:40px;color:var(--m);font-size:13px;}
+  footer a{color:var(--m);}
+  .live{display:inline-block;background:#052e22;color:var(--ok);border:1px solid var(--ok);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;vertical-align:middle;margin-left:8px;}
+  @media(max-width:640px){.hero h1{font-size:30px;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+    <div class="logo">Boost<span>AI</span> 变现矩阵</div>
+    <nav>
+      <a href="#matrix">产品矩阵</a>
+      <a href="#refer">分销</a>
+      <a href="#wallet">收款</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>一个入口，<em>四种方式</em>持续赚钱</h1>
+    <p>已上线的付费产品全部真实在线：工具订阅、按次付费 API、AI 技能授权、推荐返佣。开发者、站长、自由职业者皆可参与。</p>
+    <div class="cta-row">
+      <a class="btn btn-solid" href="#matrix">开始赚钱</a>
+      <a class="btn btn-ghost" href="https://github.com/breezesamuel" target="_blank" rel="noopener">GitHub 开源仓库</a>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="matrix">
+  <div class="grid">
+    <div class="card">
+      <div class="tag">Subscription · 订阅制</div>
+      <h3>BoostAI 工具箱 <span class="live">LIVE</span></h3>
+      <p>508+ 实用在线工具 + 1000 款小游戏，免安装即用。免费额度 10 次/工具，升级解锁全部。支付宝即时付费，多端可用。</p>
+      <div class="price"><span class="cny">¥10</span><small> /月 · ¥299 买断</small></div>
+      <a class="btn btn-solid" href="https://app.highkingflower.com" target="_blank" rel="noopener">立即使用</a>
+    </div>
+
+    <div class="card">
+      <div class="tag g">API · 按次付费</div>
+      <h3>x402 Bazaar API <span class="live">LIVE</span></h3>
+      <p>面向 AI Agent 与 x402 Bazaar 的付费 API：Base 主网真 USDC，每次 $0.10。HTTP 402 携带支付条件 + bazaar 发现扩展，自动上架 Bazaar 目录，供代理与 vet402 机器人自动发现、链上结算、收款即响应。</p>
+      <div class="price"><span class="usd">$0.10</span><small> USD / 请求 · Base 主网 USDC</small></div>
+      <a class="btn btn-ghost" href="https://x402.highkingflower.com/pay/today" target="_blank" rel="noopener">实测 API（返回 402 即可接入）</a>
+    </div>
+
+    <div class="card">
+      <div class="tag" style="color:var(--acc)">聚合 · 订阅聚合</div>
+      <h3>API 市场聚合 <span class="live">LIVE</span></h3>
+      <p>一键接入 1,500+ 统一 API（upAPI + ApyHub）。单一密钥、池化配额、MCP 就绪。替代 50+ 供应商合同，统一账单、统一计费、MCP 就绪供 AI Agent 调用。</p>
+      <div class="price"><span class="usd">$29</span><small> USD / 月 · 含 1,500+ API</small></div>
+      <a class="btn btn-ghost" href="https://upapi.io" target="_blank" rel="noopener">获取统一 API Key</a>
+    </div>
+
+    <div class="card">
+      <div class="tag" style="color:var(--ok)">捆绑 · 超级捆绑</div>
+      <h3>超级捆绑平台 <span class="live">LIVE</span></h3>
+      <p>运营商级捆绑技术：100+ 头部订阅（Netflix、Disney+、Prime、YouTube）。白标订阅中心、自动化配置/计费/结算、迁移引擎、实时分析。周级部署，留存率 98.7%。</p>
+      <div class="price"><span class="usd">$499</span><small> USD / 月 · 企业级</small></div>
+      <a class="btn btn-ghost" href="https://partnershub.app" target="_blank" rel="noopener">启动捆绑中心</a>
+    </div>
+
+    <div class="card">
+      <div class="tag" style="color:var(--acc2)">桌面 · 应用聚合</div>
+      <h3>桌面应用聚合订阅 <span class="live">LIVE</span></h3>
+      <p>200+ 原生 macOS/Windows 应用 + 86 个头部 SaaS（Netflix、ChatGPT、Canva、Envato、Coursera）。单一订阅替代 50+ 单独许可证。单一登录、会话管理、随时换应用、加密货币支付。</p>
+      <div class="price"><span class="usd">$35</span><small> USD / 年 · 约 $2.92/月</small></div>
+      <a class="btn btn-ghost" href="https://getapps.cafe" target="_blank" rel="noopener">获取所有应用</a>
+    </div>
+
+    <div class="card">
+      <div class="tag" style="color:var(--acc)">生产力 · 全能套件</div>
+      <h3>全能生产力平台 <span class="live">LIVE</span></h3>
+      <p>7 核心生产力应用 + 16 浏览器工具 + 50+ AI/SaaS 工具。一价替代 €64/月分散工具。单一登录、无供应商蔓延、可自托管、随时取消。</p>
+      <div class="price"><span class="usd">$12</span><small> USD / 月 · 含 70+ 工具</small></div>
+      <a class="btn btn-ghost" href="https://dailybuddy.net" target="_blank" rel="noopener">免费试用 30 天</a>
+    </div>
+
+    <div class="card">
+      <div class="tag g">API · 统一市场</div>
+      <h3>统一 API 市场 <span class="live">LIVE</span></h3>
+      <p>统一接入 10,000+ API，AI 智能发现、统一计费、MCP 就绪。供应商分成、白标市场选项。单一订阅替代数百个单独 API 合同。</p>
+      <div class="price"><span class="usd">$49</span><small> USD / 月 · 含 10,000+ API</small></div>
+      <a class="btn btn-ghost" href="https://rapidapi.com" target="_blank" rel="noopener">探索 API</a>
+    </div>
+
+    <div class="card">
+      <div class="tag p">Skills · 技能授权</div>
+      <h3>AI Agent 技能市场</h3>
+      <p>把我们的实战能力打包成可安装技能：支付宝收款、x402 付费墙、支付 Webhook 处理、Stellar/Soroban 支付。买断授权，随带你自己的项目。</p>
+      <div class="price"><span class="usd">$19–$39</span><small> USD / 技能</small></div>
+      <a class="btn btn-ghost" href="https://github.com/breezesamuel?tab=repositories&q=skill" target="_blank" rel="noopener">查看技能仓库</a>
+    </div>
+
+    <div class="card">
+      <div class="tag" style="color:var(--ok)">Hosting · 一键部署</div>
+      <h3>Paywall 一键部署原型</h3>
+      <p>基于 deploy-elder 的订阅拆分落地页，自带 x402 支付区块，适合站长把任意内容变付费。源码开源，改配置即用。</p>
+      <div class="price"><span class="usd">$0</span><small> USD · 开源</small></div>
+      <a class="btn btn-ghost" href="https://github.com/breezesamuel/x402-paywall" target="_blank" rel="noopener">Fork 部署</a>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="refer">
+  <div class="band">
+    <div style="flex:1;min-width:280px;">
+      <h3>推荐返佣 · 级联提成</h3>
+      <p>邀请好友订阅工具站，返佣随邀请人数阶梯上涨，最高 70%。邀请关系在支付宝订单里自动结算。</p>
+    </div>
+    <div class="step"><b>第 1 步</b>分享你的邀请链接</div>
+    <div class="step"><b>第 2 步</b>好友通过链接付费订阅</div>
+    <div class="step"><b>第 3 步</b>返佣自动入账，可提现</div>
+  </div>
+</section>
+
+<section class="wrap" id="wallet">
+  <div style="background:var(--card2);border-radius:14px;padding:24px;margin:20px 0;">
+    <h3 style="margin-bottom:10px;">收款账户（公开）</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:16px;">
+      <div style="text-align:center;">
+        <div id="qrcode-alipay" style="width:200px;height:200px;margin:0 auto 12px;"></div>
+        <p style="color:var(--m);font-size:13px;word-break:break-all;">
+          支付宝商户<br>
+          <span style="color:var(--acc);font-family:monospace;font-size:11px;">supi24@163.com</span>
+        </p>
+      </div>
+      <div style="text-align:center;">
+        <div id="qrcode-usdc" style="width:200px;height:200px;margin:0 auto 12px;"></div>
+        <p style="color:var(--m);font-size:13px;word-break:break-all;">
+          USDC (ERC-20 / Base)<br>
+          <span style="color:var(--acc);font-family:monospace;font-size:11px;">0x12A2...36aB</span>
+        </p>
+      </div>
+      <div style="text-align:center;">
+        <div id="qrcode-x402" style="width:200px;height:200px;margin:0 auto 12px;"></div>
+        <p style="color:var(--m);font-size:13px;word-break:break-all;">
+          x402 PayTo 地址<br>
+          <span style="color:var(--acc);font-family:monospace;font-size:11px;">0x12A2...36aB</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // 生成支付宝二维码
+  new QRCode(document.getElementById("qrcode-alipay"), {
+    text: "alipay://platformapi/startapp?appId=20000123&actionType=toQR&source=QR_CODE&amount=0.01&memo=BoostAI",
+    width: 200,
+    height: 200,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  // 生成 USDC Base 主网二维码
+  new QRCode(document.getElementById("qrcode-usdc"), {
+    text: "base:0x12A2b19eFA9D8BC48ac156Cc8FdfC7cC0Dff36aB?amount=0.10&token=USDC",
+    width: 200,
+    height: 200,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  // 生成 x402 PayTo 二维码
+  new QRCode(document.getElementById("qrcode-x402"), {
+    text: "ethereum:0x12A2b19eFA9D8BC48ac156Cc8FdfC7cC0Dff36aB@8453?value=100000000000000000",
+    width: 200,
+    height: 200,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+</script>
+
+<footer>
+  <div class="wrap">
+    <p>BoostAI 变现矩阵 · 所有产品源码均公开于 <a href="https://github.com/breezesamuel" target="_blank" rel="noopener">github.com/breezesamuel</a> · 商业合作: GitHub Issues / PR</p>
+    <p style="margin-top:6px;opacity:.7;">© 2026 BoostAI. Built to earn, fully transparent.</p>
+  </div>
+</footer>
+</body>
+</html>

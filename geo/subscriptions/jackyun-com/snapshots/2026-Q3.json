@@ -1,0 +1,680 @@
+{
+  "url": "https://www.jackyun.com",
+  "quarter": "2026-Q3",
+  "createdAt": "2026-09-30T08:57:18.380Z",
+  "overall": 38,
+  "pages": [
+    {
+      "url": "https://www.jackyun.com/",
+      "ok": true,
+      "score": 35,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15,
+          "detail": "No AI-crawler rules found. All 13 fall through to the wildcard/default rule — check what '*' resolves to."
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0,
+          "detail": "No JSON-LD found. Entity extraction for AI answers is manual and error-prone without it."
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0,
+          "detail": "✗ Organization/Corporation (who you are) · ✗ FAQPage (question/answer pairs — the format models quote most)"
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0,
+          "detail": "✗ Product/Service · ✗ Article/BlogPosting"
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5,
+          "detail": "Present and served as text."
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 3,
+          "detail": "2 × h1 (exactly one is the convention; 0 leaves the page untitled, >1 splits the subject), 12 × h2, 4 × h3"
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0,
+          "detail": "None. These match the shape of the questions people ask an assistant, and they are the cheapest thing on this list to fix."
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0,
+          "detail": "✗ named author/reviewer · ✗ publish or update date. Unattributed, undated claims get skipped in favour of a source that signs its work."
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 3,
+          "detail": "~499 words"
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 7,
+          "detail": "10 external domain(s) referenced: www.wdgj.com, zhaocangwang.com, www.polyapi.com, www.wxywt8.com, disyun.com…. Pages that cite primary sources are more likely to be trusted as references."
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0,
+          "detail": "0/5 present (missing: og:title, og:description, og:image, og:url, og:type)"
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/erp.html",
+      "ok": true,
+      "score": 31,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15,
+          "detail": "No AI-crawler rules found. All 13 fall through to the wildcard/default rule — check what '*' resolves to."
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0,
+          "detail": "No JSON-LD found. Entity extraction for AI answers is manual and error-prone without it."
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0,
+          "detail": "✗ Organization/Corporation (who you are) · ✗ FAQPage (question/answer pairs — the format models quote most)"
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0,
+          "detail": "✗ Product/Service · ✗ Article/BlogPosting"
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5,
+          "detail": "Present and served as text."
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6,
+          "detail": "1 × h1, 7 × h2, 29 × h3"
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0,
+          "detail": "None. These match the shape of the questions people ask an assistant, and they are the cheapest thing on this list to fix."
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0,
+          "detail": "✗ named author/reviewer · ✗ publish or update date. Unattributed, undated claims get skipped in favour of a source that signs its work."
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 3,
+          "detail": "~283 words"
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0,
+          "detail": "No outbound citations. A page that cites nothing gives a model no reason to prefer it over a competitor that does."
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0,
+          "detail": "0/5 present (missing: og:title, og:description, og:image, og:url, og:type)"
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/products/erp-legacy.html",
+      "ok": true,
+      "score": 62,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15,
+          "detail": "No AI-crawler rules found. All 13 fall through to the wildcard/default rule — check what '*' resolves to."
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 15,
+          "detail": "5 type(s): WebSite, Organization, WebPage, Product, BreadcrumbList"
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 5,
+          "detail": "✓ Organization/Corporation (who you are) · ✗ FAQPage (question/answer pairs — the format models quote most)"
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 3,
+          "detail": "✓ Product/Service · ✗ Article/BlogPosting"
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5,
+          "detail": "Present and served as text."
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6,
+          "detail": "1 × h1, 6 × h2, 14 × h3"
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0,
+          "detail": "None. These match the shape of the questions people ask an assistant, and they are the cheapest thing on this list to fix."
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 4,
+          "detail": "✓ named author/reviewer · ✗ publish or update date. Unattributed, undated claims get skipped in favour of a source that signs its work."
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1,
+          "detail": "~79 words — too thin to be cited for anything specific"
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0,
+          "detail": "No outbound citations. A page that cites nothing gives a model no reason to prefer it over a competitor that does."
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 5,
+          "detail": "Complete."
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/solutions.html",
+      "ok": true,
+      "score": 28,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15,
+          "detail": "No AI-crawler rules found. All 13 fall through to the wildcard/default rule — check what '*' resolves to."
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0,
+          "detail": "No JSON-LD found. Entity extraction for AI answers is manual and error-prone without it."
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0,
+          "detail": "✗ Organization/Corporation (who you are) · ✗ FAQPage (question/answer pairs — the format models quote most)"
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0,
+          "detail": "✗ Product/Service · ✗ Article/BlogPosting"
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5,
+          "detail": "Present and served as text."
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6,
+          "detail": "1 × h1, 8 × h2, 5 × h3"
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0,
+          "detail": "None. These match the shape of the questions people ask an assistant, and they are the cheapest thing on this list to fix."
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0,
+          "detail": "✗ named author/reviewer · ✗ publish or update date. Unattributed, undated claims get skipped in favour of a source that signs its work."
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1,
+          "detail": "~104 words — too thin to be cited for anything specific"
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0,
+          "detail": "No outbound citations. A page that cites nothing gives a model no reason to prefer it over a competitor that does."
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0,
+          "detail": "0/5 present (missing: og:title, og:description, og:image, og:url, og:type)"
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/solutions/ecommerce.html",
+      "ok": true,
+      "score": 64,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15,
+          "detail": "No AI-crawler rules found. All 13 fall through to the wildcard/default rule — check what '*' resolves to."
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 15,
+          "detail": "5 type(s): WebSite, Organization, WebPage, SoftwareApplication, BreadcrumbList"
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 5,
+          "detail": "✓ Organization/Corporation (who you are) · ✗ FAQPage (question/answer pairs — the format models quote most)"
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 3,
+          "detail": "✓ Product/Service · ✗ Article/BlogPosting"
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5,
+          "detail": "Present and served as text."
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6,
+          "detail": "1 × h1, 31 × h2, 23 × h3"
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0,
+          "detail": "None. These match the shape of the questions people ask an assistant, and they are the cheapest thing on this list to fix."
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 4,
+          "detail": "✓ named author/reviewer · ✗ publish or update date. Unattributed, undated claims get skipped in favour of a source that signs its work."
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 3,
+          "detail": "~259 words"
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0,
+          "detail": "No outbound citations. A page that cites nothing gives a model no reason to prefer it over a competitor that does."
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 5,
+          "detail": "Complete."
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/solutions/scm.html",
+      "ok": true,
+      "score": 28,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15,
+          "detail": "No AI-crawler rules found. All 13 fall through to the wildcard/default rule — check what '*' resolves to."
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0,
+          "detail": "No JSON-LD found. Entity extraction for AI answers is manual and error-prone without it."
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0,
+          "detail": "✗ Organization/Corporation (who you are) · ✗ FAQPage (question/answer pairs — the format models quote most)"
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0,
+          "detail": "✗ Product/Service · ✗ Article/BlogPosting"
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5,
+          "detail": "Present and served as text."
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6,
+          "detail": "1 × h1, 26 × h2, 26 × h3"
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0,
+          "detail": "None. These match the shape of the questions people ask an assistant, and they are the cheapest thing on this list to fix."
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0,
+          "detail": "✗ named author/reviewer · ✗ publish or update date. Unattributed, undated claims get skipped in favour of a source that signs its work."
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1,
+          "detail": "~217 words — too thin to be cited for anything specific"
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0,
+          "detail": "No outbound citations. A page that cites nothing gives a model no reason to prefer it over a competitor that does."
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0,
+          "detail": "0/5 present (missing: og:title, og:description, og:image, og:url, og:type)"
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/pages/jmRobot.html",
+      "ok": true,
+      "score": 28,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15,
+          "detail": "No AI-crawler rules found. All 13 fall through to the wildcard/default rule — check what '*' resolves to."
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0,
+          "detail": "No JSON-LD found. Entity extraction for AI answers is manual and error-prone without it."
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0,
+          "detail": "✗ Organization/Corporation (who you are) · ✗ FAQPage (question/answer pairs — the format models quote most)"
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0,
+          "detail": "✗ Product/Service · ✗ Article/BlogPosting"
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5,
+          "detail": "Present and served as text."
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6,
+          "detail": "1 × h1, 16 × h2, 5 × h3"
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0,
+          "detail": "None. These match the shape of the questions people ask an assistant, and they are the cheapest thing on this list to fix."
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0,
+          "detail": "✗ named author/reviewer · ✗ publish or update date. Unattributed, undated claims get skipped in favour of a source that signs its work."
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1,
+          "detail": "~195 words — too thin to be cited for anything specific"
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0,
+          "detail": "No outbound citations. A page that cites nothing gives a model no reason to prefer it over a competitor that does."
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0,
+          "detail": "0/5 present (missing: og:title, og:description, og:image, og:url, og:type)"
+        }
+      ]
+    },
+    {
+      "url": "https://www.jackyun.com/solutions/cross-border.html",
+      "ok": true,
+      "score": 28,
+      "checks": [
+        {
+          "id": "robots",
+          "label": "AI crawler access",
+          "weight": 15,
+          "score": 15,
+          "detail": "No AI-crawler rules found. All 13 fall through to the wildcard/default rule — check what '*' resolves to."
+        },
+        {
+          "id": "jsonld",
+          "label": "Structured data (JSON-LD)",
+          "weight": 15,
+          "score": 0,
+          "detail": "No JSON-LD found. Entity extraction for AI answers is manual and error-prone without it."
+        },
+        {
+          "id": "schema-identity",
+          "label": "Identity + FAQ schema",
+          "weight": 10,
+          "score": 0,
+          "detail": "✗ Organization/Corporation (who you are) · ✗ FAQPage (question/answer pairs — the format models quote most)"
+        },
+        {
+          "id": "schema-content",
+          "label": "Product/service + article schema",
+          "weight": 5,
+          "score": 0,
+          "detail": "✗ Product/Service · ✗ Article/BlogPosting"
+        },
+        {
+          "id": "llms",
+          "label": "llms.txt",
+          "weight": 5,
+          "score": 5,
+          "detail": "Present and served as text."
+        },
+        {
+          "id": "headings",
+          "label": "Heading structure",
+          "weight": 10,
+          "score": 6,
+          "detail": "1 × h1, 26 × h2, 5 × h3"
+        },
+        {
+          "id": "questions",
+          "label": "Question-form headings",
+          "weight": 10,
+          "score": 0,
+          "detail": "None. These match the shape of the questions people ask an assistant, and they are the cheapest thing on this list to fix."
+        },
+        {
+          "id": "eeat",
+          "label": "Authorship and dates",
+          "weight": 8,
+          "score": 0,
+          "detail": "✗ named author/reviewer · ✗ publish or update date. Unattributed, undated claims get skipped in favour of a source that signs its work."
+        },
+        {
+          "id": "depth",
+          "label": "Content depth on this page",
+          "weight": 5,
+          "score": 1,
+          "detail": "~221 words — too thin to be cited for anything specific"
+        },
+        {
+          "id": "citations",
+          "label": "Outbound citations",
+          "weight": 7,
+          "score": 0,
+          "detail": "No outbound citations. A page that cites nothing gives a model no reason to prefer it over a competitor that does."
+        },
+        {
+          "id": "social",
+          "label": "Open Graph",
+          "weight": 5,
+          "score": 0,
+          "detail": "0/5 present (missing: og:title, og:description, og:image, og:url, og:type)"
+        }
+      ]
+    }
+  ]
+}

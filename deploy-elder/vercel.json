@@ -1,0 +1,10 @@
+{
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "api/index.py", "use": "@vercel/python", "config": { "maxDuration": 30 } }
+  ],
+  "routes": [
+    { "src": "/pay/(.*)", "dest": "api/index.py" },
+    { "src": "/", "dest": "index.html" }
+  ]
+}
