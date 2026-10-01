@@ -21,8 +21,10 @@ AI support automation is worth buying at their volume.
 
 ## GEO audit product (CN-market, `/geo`)
 
-Second revenue line: paid AI-readiness audits for Chinese B2B sites, the way
-`F:\24\geo` measures them but packaged for money.
+Paid AI-readiness audits for Chinese B2B sites, the way `F:\24\geo` measures them
+but packaged for money. **This did not become a revenue line** — see *Status: not a
+¥10M vehicle* below for why the audience never connected to the calculator's
+traffic. Shipped and honest, commercially dormant.
 
 - `/geo` — landing + order form (¥1999 report / ¥4999 report+fix), not indexed
 - `/geo/samples/jackyun`, `/geo/samples/sellersprite` — public one-page proofs
@@ -45,8 +47,61 @@ every round reinforced the supply side (tooling, payment rails, deploys) while t
 demand side stayed at zero. Nothing built in those rounds kept working after the
 build stopped.
 
-This is the one asset that does. A useful tool ranks, gets shared, and returns
-visitors while nobody is watching.
+This is the one asset that keeps working. A useful tool ranks, gets shared, and
+returns visitors while nobody is watching.
+
+> **Correction (2026-10-01):** the claim above is aspirational, not measured. The
+> site is crawlable and submitted, but `site:` returns zero results on Google and
+> Bing — it does **not** currently rank. See *Status* below before relying on it.
+
+## Status: not a ¥10M vehicle (decided, not deferred)
+
+A later round audited *why* the demand side stayed at zero, and the answer is
+structural rather than effortful.
+
+**The ranked asset and the charging product serve disjoint audiences.**
+
+| | Ranks | Charges |
+|---|---|---|
+| Page | `/` — English calculator | `/geo` — Chinese |
+| Buyer | e-commerce / SaaS support teams | Chinese B2B brands |
+| Language | `lang="en"` (`layout.tsx`) | Chinese, same shared layout |
+| Indexed | yes | no — `index: false` (`geo/page.tsx`) |
+| Bridge | one nav link (`page.tsx`) | — |
+
+A support-headcount calculator has **no audience overlap** with Chinese B2B AI-
+visibility buyers. The two are one nav link apart and share only a `layout.tsx`.
+The implicit thesis — *we have something that ranks, so we have distribution for
+the paid product* — is false, which is why no amount of engineering to either side
+could have connected them.
+
+**Both products have no distribution.** The calculator is crawlable and in the
+sitemap, but it is **not indexed** — `site:` returns zero results on both Google and
+Bing (verified 2026-10-01). `/geo` is `noindex` by design. So the earlier claim
+that the calculator "ranks, gets shared, and returns visitors" is unverified and
+appears false: it is a well-built page nobody has found.
+
+**Decision: stop treating this repo as a revenue vehicle.** Not a pause, not a
+deprioritisation. Both products are sound and stay up — the calculator is a
+legitimately good tool, and `/geo` is honest, works, and is correctly `manual: true`.
+Neither is deleted. Neither is a compounding business, and further work here is
+supply-side by default — the documented cause of all thirteen earlier failures.
+
+What was *not* the problem, recorded so nobody re-litigates it: the paid tiers were
+never priced wrong. With no traffic on `/geo`, no price produces a demand signal,
+so there is no market-clearance reading to act on. Repricing would have converted a
+cheap experiment into an expensive one.
+
+**The one test worth running once, for evidence only:** send 50 cold messages to
+Chinese B2B companies offering the ¥1999 audit. Fulfilment already works by hand
+(`node full-report.js`), so this costs a day and no code. Replies reopen the
+question; silence confirms the decision.
+
+**The calculator is the only thing here worth building on — but its value is
+unproven.** It may simply be a good page with no audience. The question "does this
+actually rank?" is still open and is the first thing to measure, not assume. Note
+that thirteen prior rounds each assumed the asset *did* rank; that assumption is
+what this section exists to stop repeating.
 
 ## The three anti-sales design rules
 

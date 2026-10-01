@@ -9,7 +9,10 @@ export const metadata = {
   title: "Support Headcount Calculator — How Many Support Agents Do You Need?",
   description:
     "Free calculator: how many customer support agents do you need, what does it cost, and is AI automation actually worth it at your volume? No signup, instant answer.",
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    languages: { en: "/", "zh-CN": "/zh", "x-default": "/" },
+  },
 };
 
 export default function Home() {

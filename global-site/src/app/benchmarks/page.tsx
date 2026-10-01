@@ -5,7 +5,10 @@ export const metadata: Metadata = {
   title: "Support Cost & Productivity Benchmarks 2026 — Tables You Can Cite",
   description:
     "Tickets per agent per day, cost per support ticket, and automation payback thresholds by industry. Every figure computed from a published model, not estimated.",
-  alternates: { canonical: "/benchmarks" },
+  alternates: {
+    canonical: "/benchmarks",
+    languages: { en: "/benchmarks", "zh-CN": "/zh/benchmarks", "x-default": "/benchmarks" },
+  },
 };
 
 /**

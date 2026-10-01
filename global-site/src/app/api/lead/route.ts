@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { saveLead } from "@/lib/store";
 
-export const runtime = "edge";
+// Node runtime, not edge: saveLead() lives in store.ts alongside the quota and
+// order helpers, and that module derives ids with node:crypto — which the edge
+// bundle cannot resolve. Keeping the whole KV layer on one runtime is simpler
+// than forking the id generation, and a human-scale lead POST gains nothing from
+// the edge runtime's fetch concurrency.
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
@@ -78,10 +84,15 @@ export async function POST(req: NextRequest) {
       .map(([k, v]) => `${k}=${v}`)
       .join(" ");
 
-  // Durable-ish sink #1: platform log, greppable, never blocked.
-  console.log(line);
+  // Durable sink #1: KV, so the lead is queryable and survives a redeploy.
+  // Best-effort by design — see saveLead(). A visitor who handed us an email
+  // must never see a 500 because the database blinked.
+  const saved = await saveLead(lead);
 
-  // Sink #2: optional webhook (Zapier/Make/Feishu/n8n) when configured.
+  // Sink #2: platform log, greppable, never blocked.
+  console.log(line + (saved ? ` id=${saved.id}` : " kv=unavailable"));
+
+  // Sink #3: optional webhook (Zapier/Make/Feishu/n8n) when configured.
   const hook = process.env.LEAD_WEBHOOK_URL;
   if (hook) {
     try {
@@ -95,7 +106,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, stored: saved !== null });
 }
 
 export async function GET() {

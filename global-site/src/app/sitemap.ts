@@ -8,6 +8,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/ai-vs-human-cost`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/benchmarks`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/methodology`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/zh`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/zh/benchmarks`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 }
