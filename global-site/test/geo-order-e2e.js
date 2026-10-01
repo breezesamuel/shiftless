@@ -102,7 +102,7 @@ const srv = spawn(process.execPath, [path.join(__dirname, "..", "node_modules", 
       /赠\s*1\s*个月|1\s*month/.test(k3.text) &&
       /3\s*个季度|quarter/.test(k3.text) &&
       /赠\s*1\s*年|a\s*year/.test(k3.text));
-    check("subscribe page states non-stacking rule", /不叠加|do not stack|not 16/i.test(k3.text));
+    check("subscribe page states stacking rule", /叠加|stack/i.test(k3.text));
     check("subscribe page states honest boundary (no ranking promise)", !/保证.{0,4}排名|排名保证/.test(k3.text));
     check("subscribe page does not fake a live payment channel",
       /开通中|not live|not yet/i.test(k3.text));

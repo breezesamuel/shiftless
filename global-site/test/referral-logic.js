@@ -119,12 +119,12 @@ console.log("\nReferral: 1 paid month -> 1 month");
 }
 check("one UNPAID referral grants nothing", grantedMonths([unpaid("a")]) === 0);
 
-console.log("\nReferral: 3 quarterly -> 3 months (not cumulative)");
+console.log("\nReferral: 3 quarterly -> 4 months (cumulative 1+3)");
 {
   const refs = [paid("a", "quarterly"), paid("b", "quarterly"), paid("c", "quarterly")];
   const b = bestTier(refs);
   check("tier is three_quarters", b.id === "three_quarters", b.id);
-  check("grants exactly 3 months (not 1+3)", grantedMonths(refs) === 3, String(grantedMonths(refs)));
+  check("grants 4 months (1 from first_paid + 3 from quarters)", grantedMonths(refs) === 4, String(grantedMonths(refs)));
 }
 
 console.log("\nReferral: depth actually matters");
@@ -137,20 +137,42 @@ console.log("\nReferral: depth actually matters");
   check("1 quarterly alone is NOT 3 referrals deep", bestTier([paid("a", "quarterly")]).id === "first_paid");
 }
 
-console.log("\nReferral: 10 yearly -> 12 months (not cumulative)");
+console.log("\nReferral: 10 yearly -> 16 months (cumulative 1+3+12)");
 {
   const refs = Array.from({ length: 10 }, (_, i) => paid("r" + i, "yearly"));
   const b = bestTier(refs);
   check("tier is ten_years", b.id === "ten_years", b.id);
-  check("grants exactly 12 months (not 16)", grantedMonths(refs) === 12, String(grantedMonths(refs)));
+  check("grants 16 months (1+3+12)", grantedMonths(refs) === 16, String(grantedMonths(refs)));
 }
 {
   const nine = Array.from({ length: 9 }, (_, i) => paid("r" + i, "yearly"));
   check("9 yearly referrals do NOT reach top tier", bestTier(nine).id !== "ten_years",
     bestTier(nine).id);
+  // 9 annual clears first_paid (>=1) and three_quarters (>=3) but not ten_years.
+  check("9 yearly grants 1+3 = 4 months", grantedMonths(nine) === 4, String(grantedMonths(nine)));
 }
 
-console.log("\nReferral: unpaid & duplicates do not inflate");
+console.log("\nReferral: cumulation is monotone, never a regression");
+{
+  const mk = (n) => Array.from({ length: n }, (_, i) => paid("r" + i, "yearly"));
+  let prev = 0, ok = true;
+  for (let n = 0; n <= 10; n++) {
+    const m = grantedMonths(mk(n));
+    if (m < prev) ok = false;
+    prev = m;
+  }
+  check("granted months never decrease as referrals grow", ok);
+}
+{
+  // Every step change must be exactly one tier's grant.
+  const mk = (n) => Array.from({ length: n }, (_, i) => paid("r" + i, "yearly"));
+  check("1st referral adds 1", grantedMonths(mk(1)) === 1);
+  check("2nd referral adds 0", grantedMonths(mk(2)) === 1);
+  check("3rd referral adds 3", grantedMonths(mk(3)) === 4);
+  check("10th referral adds 12", grantedMonths(mk(10)) === 16);
+}
+
+console.log("\nUnpaid & shallow do not inflate");
 {
   const refs = [
     paid("a", "yearly"), paid("b", "yearly"), unpaid("c"), unpaid("d"),
@@ -158,20 +180,40 @@ console.log("\nReferral: unpaid & duplicates do not inflate");
   ];
   const t = bestTier(refs);
   check("2 yearly + 8 unpaid stays first_paid", t.id === "first_paid", t.id);
-  check("grants 1 month not more", grantedMonths(refs) === 1);
+  check("grants only 1 month", grantedMonths(refs) === 1, String(grantedMonths(refs)));
+}
+{
+  const threeMonthly = [paid("a", "monthly"), paid("b", "monthly"), paid("c", "monthly")];
+  check("3x monthly grants 1 month only (no quarterly depth)", grantedMonths(threeMonthly) === 1,
+    String(grantedMonths(threeMonthly)));
 }
 {
   // Same referral id replayed 3 times must not become 3 referrals.
   const dupes = [paid("a", "quarterly"), paid("a", "quarterly"), paid("a", "quarterly")];
   const uniq = dedupeReferrals(dupes);
   check("dedupe collapses repeats", uniq.length === 1, String(uniq.length));
-  check("3 replays of 1 referral stay first_paid", bestTier(dupes).id === "first_paid",
+  check("3 replays of 1 referral grant only 1 month", grantedMonths(dupes) === 1,
+    String(grantedMonths(dupes)));
+}
+{
+  // The dangerous case under cumulative rules: replaying ONE annual referral 10x
+  // would otherwise clear all three tiers at once and pay 16 months.
+  const dupes = Array.from({ length: 10 }, () => paid("same", "yearly"));
+  check("10x replayed same annual id grants only 1 month", grantedMonths(dupes) === 1,
+    String(grantedMonths(dupes)));
+  check("10x replayed same id does NOT reach top tier", bestTier(dupes).id !== "ten_years",
     bestTier(dupes).id);
 }
 {
-  const dupes = Array.from({ length: 10 }, () => paid("same", "yearly"));
-  check("10x replayed same id does NOT reach top tier", bestTier(dupes).id !== "ten_years",
-    bestTier(dupes).id);
+  // Replay of a MIXED set: 3 distinct annual + 7 replays of one of them.
+  const refs = [
+    paid("a", "yearly"), paid("b", "yearly"), paid("c", "yearly"),
+    ...Array.from({ length: 7 }, () => paid("a", "yearly")),
+  ];
+  const unique = dedupeReferrals(refs);
+  check("mixed replay dedupes to 3 unique", unique.length === 3, String(unique.length));
+  check("3 distinct annual grants 4 months (1+3, not 16)", grantedMonths(refs) === 4,
+    String(grantedMonths(refs)));
 }
 
 console.log("\nProgress reporting");
@@ -204,10 +246,21 @@ console.log("\nSettlement");
   const refs = [paid("a", "quarterly"), paid("a", "quarterly"), paid("b", "quarterly"), paid("c", "quarterly")];
   const s = settleReward(refs);
   check("settleReward dedupes", s.paidReferrals === 3, String(s.paidReferrals));
-  check("settleReward grants 3 months", s.months === 3, String(s.months));
+  check("settleReward grants 4 months cumulative", s.months === 4, String(s.months));
   check("settleReward tier is three_quarters", s.tier.id === "three_quarters", s.tier.id);
 }
 check("settleReward on empty = 0 months", settleReward([]).months === 0);
+
+console.log("\nUnlocked tier list");
+{
+  const { unlockedTiers } = referral;
+  check("1 annual unlocks 1 tier", unlockedTiers([paid("a", "yearly")]).length === 1);
+  check("3 annual unlock 2 tiers", unlockedTiers(
+    [paid("a", "yearly"), paid("b", "yearly"), paid("c", "yearly")]).length === 2);
+  check("10 annual unlock all 3 tiers", unlockedTiers(
+    Array.from({ length: 10 }, (_, i) => paid("r" + i, "yearly"))).length === 3);
+  check("empty unlocks 0 tiers", unlockedTiers([]).length === 0);
+}
 
 console.log("\nTier ladder integrity");
 check("4 tiers defined", REWARD_TIERS.length === 4, String(REWARD_TIERS.length));
