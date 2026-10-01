@@ -1,0 +1,207 @@
+import Link from "next/link";
+import type { PageSpec } from "@/lib/corpus";
+import { fmtMoney, shareUrl, STATE_VERSION } from "@/lib/model";
+import { INDUSTRY_EDITORIAL, industryLabel, bandLabel } from "@/lib/corpus";
+
+/**
+ * One programmatic page, rendered from real model output.
+ *
+ * The substance of every page is the numbers, and those come from `compute()`
+ * for that page's exact inputs. There is no filler paragraph that is the same
+ * on every URL: the industry line is the only editorial block, it is hand
+ * written per industry, and everything else on the page is a distinct result.
+ *
+ * Shared by the English and Chinese routes so the two cannot drift apart. If a
+ * number is wrong it is wrong identically in both languages, which is the only
+ * way this stays trustworthy.
+ */
+
+const BASE = "https://shiftless.vercel.app";
+
+const VERDICT_TEXT: Record<string, { en: string; zh: string; tone: string }> = {
+  strong: {
+    en: "Worth buying",
+    zh: "值得买",
+    tone: "border-emerald-300 bg-emerald-50 text-emerald-800",
+  },
+  workable: {
+    en: "Workable, with caveats",
+    zh: "可以做，但有前提",
+    tone: "border-sky-300 bg-sky-50 text-sky-800",
+  },
+  marginal: {
+    en: "Marginal — probably not",
+    zh: "勉强 — 大概率不值得",
+    tone: "border-amber-300 bg-amber-50 text-amber-800",
+  },
+  "not-worth-it": {
+    en: "Not worth buying at your volume",
+    zh: "以你目前的量级，不值得买",
+    tone: "border-rose-300 bg-rose-50 text-rose-800",
+  },
+};
+
+function money(n: number, en: boolean): string {
+  if (en) return fmtMoney(n);
+  return `¥${Math.round(n * 7.2).toLocaleString("zh-CN")}`;
+}
+
+export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }) {
+  const en = lang === "en";
+  const { industry, volume, band, aht, scenario, inputs, output } = spec;
+  const editorial = INDUSTRY_EDITORIAL[industry.slug];
+  const verdict = VERDICT_TEXT[output.verdict];
+
+  const title = en
+    ? `${industryLabel(industry.slug, true)} support team: ${output.agentsNeeded} agents for ${volume.toLocaleString("en-US")} tickets/month`
+    : `${industryLabel(industry.slug, false)}客服团队：每月 ${volume.toLocaleString("zh-CN")} 条工单需要 ${output.agentsNeeded} 人`;
+
+  // Carry this page's exact inputs into the calculator so the reader can move
+  // their own numbers rather than only reading ours.
+  const permalink = shareUrl(inputs, BASE);
+
+  const slugs = `${industry.slug}/${band.slug}/${volume}/${aht.slug}/${scenario.slug}`;
+  const alt = en ? `/zh/roi/${slugs}` : `/roi/${slugs}`;
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <head>
+        <link rel="alternate" hrefLang={en ? "en" : "zh-CN"} href={`${BASE}${alt}`} />
+        <link rel="alternate" hrefLang="x-default" href={`${BASE}/roi/${slugs}`} />
+      </head>
+
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-6">
+          <span className="text-lg font-bold tracking-tight text-slate-900">Shiftless</span>
+          <nav className="flex items-center gap-5 text-sm font-medium text-slate-600">
+            <Link href={en ? "/benchmarks" : "/zh/benchmarks"} className="hover:text-slate-900">
+              {en ? "Benchmarks" : "行业基准"}
+            </Link>
+            <Link href={en ? "/" : "/zh"} className="hover:text-slate-900">
+              {en ? "Calculator" : "测算器"}
+            </Link>
+            <Link href={en ? "/zh" : "/"} className="hover:text-slate-900">
+              {en ? "中文" : "English"}
+            </Link>
+          </nav>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
+        <p className="text-sm font-medium text-slate-500">
+          {industryLabel(industry.slug, en)} · {bandLabel(band.slug, en)} ·{" "}
+          {volume.toLocaleString(en ? "en-US" : "zh-CN")}{" "}
+          {en ? "tickets/mo" : "条工单/月"} · {en ? aht.en : aht.zh} AHT ·{" "}
+          {en ? scenario.en : scenario.zh}
+        </p>
+
+        <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight text-slate-900 sm:text-4xl">
+          {title}
+        </h1>
+
+        <p className="mt-4 text-lg leading-relaxed text-slate-600">{editorial[lang]}</p>
+
+        {/* The verdict leads, because refusing to sell is the point of this tool. */}
+        <div className={`mt-6 rounded-lg border px-5 py-4 ${verdict.tone}`}>
+          <p className="text-sm font-semibold uppercase tracking-wide">
+            {en ? "Verdict" : "结论"}: {verdict[lang]}
+          </p>
+          <ul className="mt-2 space-y-1 text-sm">
+            {output.reasons.map((r, i) => (
+              <li key={i}>
+                {en ? r : r}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* The numbers. Every figure is specific to this combination. */}
+        <dl className="mt-8 grid gap-4 sm:grid-cols-2">
+          <Stat
+            label={en ? "Agents needed" : "需要客服人数"}
+            value={String(output.agentsNeeded)}
+            sub={
+              en
+                ? `range ${output.agentsRange[0]}–${output.agentsRange[1]}`
+                : `区间 ${output.agentsRange[0]}–${output.agentsRange[1]}`
+            }
+          />
+          <Stat
+            label={en ? "Monthly labour cost" : "每月人力成本"}
+            value={money(output.monthlyLaborCost, en)}
+            sub={money(output.monthlyLaborCostRange[0], en) + " – " + money(output.monthlyLaborCostRange[1], en)}
+          />
+          <Stat
+            label={en ? "Heads removable via automation" : "自动化后可减少人数"}
+            value={String(output.headsRemoved)}
+            sub={
+              en
+                ? `${output.agentsAfterAutomation} agents remain`
+                : `保留 ${output.agentsAfterAutomation} 人`
+            }
+          />
+          <Stat
+            label={en ? "Net monthly effect" : "每月净效果"}
+            value={money(output.monthlyNetEffect, en)}
+            sub={
+              en
+                ? `platform cost ${money(output.monthlyPlatformCost, en)}/mo`
+                : `平台成本 ${money(output.monthlyPlatformCost, en)}/月`
+            }
+          />
+          <Stat
+            label={en ? "Payback" : "回本周期"}
+            value={output.paybackMonths === null ? (en ? "never" : "不回本") : `${output.paybackMonths} mo`}
+            sub={en ? "at this volume" : "以当前量级"}
+          />
+          <Stat
+            label={en ? "Year-one cash effect" : "首年现金影响"}
+            value={money(output.yearOneNetCash, en)}
+            sub={en ? "including setup and severance" : "含部署与补偿成本"}
+          />
+        </dl>
+
+        <div className="mt-8 rounded-lg border border-slate-200 bg-white p-6">
+          <h2 className="font-semibold text-slate-900">
+            {en ? "Put your own numbers in" : "换成你自己的数据算"}
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            {en
+              ? "These figures come from one assumed volume. Change the ticket count, AHT or cost per hour and the answer moves."
+              : "上面的数字基于一组假设。换掉工单量、AHT 或人力成本，结论就会变。"}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a
+              href={permalink}
+              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
+            >
+              {en ? "Open with these numbers" : "按这组数据打开测算器"}
+            </a>
+            <Link
+              href={en ? "/methodology" : "/zh"}
+              className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              {en ? "Every constant published" : "查看全部常数"}
+            </Link>
+          </div>
+        </div>
+
+        <p className="mt-8 text-xs text-slate-400">
+          {en
+            ? `Model ${STATE_VERSION}. Figures are estimates from published benchmarks, not a quote.`
+            : `模型 ${STATE_VERSION}。数字来自公开基准的估算，不是报价。`}
+        </p>
+      </main>
+    </div>
+  );
+}
+
+function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4">
+      <dt className="text-sm text-slate-500">{label}</dt>
+      <dd className="mt-1 text-2xl font-bold text-slate-900">{value}</dd>
+      <dd className="mt-1 text-xs text-slate-500">{sub}</dd>
+    </div>
+  );
+}

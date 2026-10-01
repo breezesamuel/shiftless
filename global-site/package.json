@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node test/verify.js && node test/report.js && node test/referral-logic.js && node test/storage-guard.js && node test/lead-capture.js && node test/alipay-logic.js && node test/quarterly-guard.js && node test/geo-order-e2e.js",
+    "test": "node test/verify.js && node test/report.js && node test/referral-logic.js && node test/storage-guard.js && node test/lead-capture.js && node test/corpus-unique.js && node test/alipay-logic.js && node test/quarterly-guard.js && node test/geo-order-e2e.js",
+    "corpus:size": "node test/corpus-size.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

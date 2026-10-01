@@ -78,3 +78,6 @@ github-workflows/
 
 # TypeScript incremental build cache
 global-site/tsconfig.tsbuildinfo
+
+.vercel
+.env*

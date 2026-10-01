@@ -1,0 +1,30 @@
+# The Vercel project "shiftless" has rootDirectory = "global-site", but the CLI
+# uploads the whole workspace, not just the root directory. This repo is the
+# entire 13-round history — other deploys, data, skills vaults, delivery
+# systems — and uploading all of it has been aborting the deploy.
+#
+# Scope the upload to the one project that actually builds. Everything ignored
+# here is either not needed to build shiftless, or is already gitignored
+# (.secrets, *.env) and must never leave the machine.
+.git
+**/node_modules
+**/.next
+**/.vercel
+**/out
+**/dist
+
+.secrets
+data
+outbox
+core
+funnel
+geo
+skills
+strategy
+deploy
+deploy-elder
+bounty-hooks
+delivery-system
+monetization-aggregator
+monetization-web-deploy
+x402-api
