@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { consumeMagicToken, createSessionToken } from "@/lib/auth";
-import { getOrCreateUser } from "@/lib/store";
+import { getOrCreateUser, StorageNotConfiguredError } from "@/lib/store";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -9,15 +9,39 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: "缺少 token。" }, { status: 400 });
   }
 
-  const consumed = await consumeMagicToken(token);
-  if (!consumed) {
-    return NextResponse.json(
-      { ok: false, error: "登录链接无效或已过期，请重新获取。" },
-      { status: 401 }
-    );
+  let email: string;
+  try {
+    const consumed = await consumeMagicToken(token);
+    if (!consumed) {
+      return NextResponse.json(
+        { ok: false, error: "登录链接无效或已过期，请重新获取。" },
+        { status: 401 }
+      );
+    }
+    email = consumed.email;
+  } catch (e) {
+    if (e instanceof StorageNotConfiguredError) {
+      return NextResponse.json(
+        { ok: false, error: "登录服务未就绪，请联系管理员。" },
+        { status: 503 }
+      );
+    }
+    throw e;
   }
 
-  const user = await getOrCreateUser(consumed.email);
+  let user;
+  try {
+    user = await getOrCreateUser(email);
+  } catch (e) {
+    if (e instanceof StorageNotConfiguredError) {
+      return NextResponse.json(
+        { ok: false, error: "登录服务未就绪，请联系管理员。" },
+        { status: 503 }
+      );
+    }
+    throw e;
+  }
+
   const session = createSessionToken(user.id, user.email);
 
   // httpOnly so the session cannot be read from JS or exfiltrated by XSS.

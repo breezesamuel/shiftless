@@ -14,10 +14,11 @@ import { useEffect, useState } from "react";
 
 type Quota = {
   signedIn: boolean;
+  storage?: "ready" | "unconfigured";
   email?: string;
   freeUsesTotal: number;
-  used: number;
-  remaining: number;
+  used: number | null;
+  remaining: number | null;
   resetAt: string | null;
 };
 
@@ -58,20 +59,29 @@ export function FreeQuotaCard() {
     }
   };
 
+  const total = q?.freeUsesTotal ?? 10;
+  const storageBroken = q?.storage === "unconfigured";
+  const signedInWithNumbers = q?.signedIn && q.remaining !== null && q.used !== null;
+
   return (
     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="font-semibold text-emerald-900">
-          {q?.signedIn
-            ? `剩余免费额度：${q.remaining} / ${q.freeUsesTotal}`
-            : `免费 ${q?.freeUsesTotal ?? 10} 次`}
+          {signedInWithNumbers
+            ? `剩余免费额度：${q.remaining} / ${total}`
+            : `免费 ${total} 次`}
         </h3>
         {q?.signedIn && (
           <span className="text-xs text-emerald-700">已登录 {q.email}</span>
         )}
       </div>
 
-      {q?.signedIn ? (
+      {storageBroken ? (
+        <p className="mt-2 rounded-lg bg-white px-4 py-3 text-sm text-amber-800">
+          额度存储服务正在配置，暂时无法显示你的剩余次数。如果你已登录但看不到数字，
+          这是我们这边的问题，不是你的操作有误。
+        </p>
+      ) : signedInWithNumbers ? (
         <>
           <p className="mt-2 text-sm leading-relaxed text-emerald-800">
             你已使用 {q.used} 次
@@ -82,17 +92,14 @@ export function FreeQuotaCard() {
           <div
             className="mt-3 h-2 overflow-hidden rounded-full bg-emerald-100"
             role="progressbar"
-            aria-valuenow={q.used}
+            aria-valuenow={q.used ?? 0}
             aria-valuemin={0}
-            aria-valuemax={q.freeUsesTotal}
+            aria-valuemax={total}
           >
             <div
               className="h-full rounded-full bg-emerald-600"
               style={{
-                width: `${Math.min(
-                  100,
-                  (q.used / Math.max(1, q.freeUsesTotal)) * 100
-                )}%`,
+                width: `${Math.min(100, ((q.used ?? 0) / Math.max(1, total)) * 100)}%`,
               }}
             />
           </div>
