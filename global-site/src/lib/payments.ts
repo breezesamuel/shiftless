@@ -20,6 +20,7 @@
  */
 
 import type { PaymentMethod } from "./referral";
+import { alipayConfigured, alipayMissingEnv } from "./alipay";
 
 export type ChannelStatus = {
   method: PaymentMethod;
@@ -35,15 +36,20 @@ export type ChannelStatus = {
 };
 
 /**
- * Whether a channel is usable. Deliberately checks for the *pair* of secrets a
- * transaction needs, not just one: an Alipay app with a client id but no
- * signing key cannot take a payment, and half-configured is the exact state
- * that produces a broken checkout at the worst moment.
+ * Whether a channel is usable.
+ *
+ * Alipay: delegates to lib/alipay, which requires an explicit
+ * ALIPAY_ENABLED=true plus app id, app private key, Alipay public key,
+ * gateway, seller id and an https notify URL.
+ *
+ * The earlier version of this function returned true from
+ * ALIPAY_APP_ID + ALIPAY_PRIVATE_KEY alone. That reported the channel as live
+ * while no transaction could be signed or, worse, could not verify that money
+ * arrived — so the UI would offer a checkout that could never settle a payment.
+ * A regression test now pins that two env vars are not enough.
  */
 function alipayLive(): boolean {
-  return Boolean(
-    process.env.ALIPAY_APP_ID && process.env.ALIPAY_PRIVATE_KEY
-  );
+  return alipayConfigured();
 }
 
 function wechatLive(): boolean {
@@ -75,7 +81,7 @@ export function paymentChannels(): ChannelStatus[] {
       live: alipayReady,
       blockedOn: alipayReady
         ? ""
-        : "缺少支付宝开放平台应用凭据（APP_ID + 应用私钥）。个人支付宝账号无法用于程序化收款，需要企业商户签约。",
+        : `缺少支付宝完整配置：${alipayMissingEnv().join("、")}。个人支付宝账号无法用于程序化收款，需要企业商户签约。`,
       customerMessage: {
         cny: alipayReady
           ? "支付宝扫码支付，到账后自动开通。"
@@ -110,6 +116,22 @@ export function paymentChannels(): ChannelStatus[] {
 /** True when at least one online channel can actually take money. */
 export function anyChannelLive(): boolean {
   return paymentChannels().some((c) => c.live);
+}
+
+/**
+ * Whether a channel can settle a given currency.
+ *
+ * Alipay settles CNY only. A USD subscription cannot be collected through an
+ * Alipay transaction, so a USD order must go to manual invoicing instead of
+ * being routed to checkout and failing at the payment step.
+ */
+export function channelSupportsCurrency(
+  method: PaymentMethod,
+  currency: "cny" | "usd"
+): boolean {
+  if (method === "alipay") return currency === "cny";
+  // WeChat Pay is not implemented yet; assume CNY if it ever goes live.
+  return currency === "cny";
 }
 
 /**

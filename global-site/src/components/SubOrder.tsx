@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PLANS, PLAN_ORDER, FREE_TIER_COPY, formatPrice } from "@/lib/pricing";
 import type { Currency, PlanId } from "@/lib/pricing";
@@ -44,11 +44,70 @@ function CurrencyToggle({
   );
 }
 
+/**
+ * Payment method chooser.
+ *
+ * Only channels the server reports as live are offered, and only when they can
+ * settle the selected currency. When nothing is live the form falls back to the
+ * manual path and says so, rather than rendering a control that cannot work.
+ */
+function PaymentMethodPicker({
+  channels,
+  method,
+  onChange,
+  currency,
+}: {
+  channels: { id: string; label: Record<string, string>; live: boolean }[];
+  method: string;
+  onChange: (m: "alipay" | "wechat" | "") => void;
+  currency: Currency;
+}) {
+  const usable = channels.filter(
+    (c) => c.live && (currency === "cny" || c.id !== "alipay")
+  );
+
+  if (usable.length === 0) {
+    return (
+      <p className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-600">
+        在线支付尚未开通。你可以先提交订单，线下转账并备注订单号，我们人工核对到账后开通。
+        {currency === "usd" && "（美元订单需人工开票，支付宝只结算人民币。）"}
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      <span className="text-sm font-medium text-slate-700">支付方式</span>
+      <div className="mt-1.5 flex flex-wrap gap-2">
+        {usable.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            aria-pressed={method === c.id}
+            onClick={() => onChange(c.id as "alipay" | "wechat")}
+            className={
+              method === c.id
+                ? "rounded-lg border border-slate-900 bg-slate-900 px-3 py-1.5 text-sm font-medium text-white"
+                : "rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:border-slate-900"
+            }
+          >
+            {c.label[currency] || c.label.en || c.id}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function SubOrder({ initialCurrency = "cny" }: { initialCurrency?: Currency }) {
   const [currency, setCurrency] = useState<Currency>(initialCurrency);
   const [plan, setPlan] = useState<PlanId>("yearly");
   const [email, setEmail] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
+  const [channels, setChannels] = useState<
+    { id: string; label: Record<string, string>; live: boolean }[]
+  >([]);
+  const [method, setMethod] = useState<"alipay" | "wechat" | "">("");
   const [state, setState] = useState<"idle" | "busy" | "done" | "err">("idle");
   const [result, setResult] = useState<{
     orderId: string;
@@ -57,8 +116,38 @@ export function SubOrder({ initialCurrency = "cny" }: { initialCurrency?: Curren
     manual: boolean;
     onlineCheckoutAvailable: boolean;
     nextStep: string;
+    paymentUrl?: string;
   } | null>(null);
   const [err, setErr] = useState("");
+
+  // Channel availability is server truth, not a hardcoded assumption. Until
+  // this resolves we show no payment choices rather than guessing.
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/payments")
+      .then((r) => r.json())
+      .then((j) => {
+        if (alive && Array.isArray(j.channels)) setChannels(j.channels);
+      })
+      .catch(() => {
+        if (alive) setChannels([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // A channel that cannot settle the selected currency is not offered. Alipay
+  // settles CNY only, so switching to USD must not leave a ¥-only option
+  // selected.
+  useEffect(() => {
+    const usable = channels.filter(
+      (c) => c.live && (currency === "cny" || c.id !== "alipay")
+    );
+    if (!usable.some((c) => c.id === method)) {
+      setMethod(usable.length === 1 ? (usable[0].id as "alipay" | "wechat") : "");
+    }
+  }, [channels, currency, method]);
 
   const submit = async () => {
     setState("busy");
@@ -67,7 +156,7 @@ export function SubOrder({ initialCurrency = "cny" }: { initialCurrency?: Curren
       const r = await fetch("/api/sub-order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, siteUrl, plan, currency }),
+        body: JSON.stringify({ email, siteUrl, plan, currency, paymentMethod: method || undefined }),
       });
       const j = await r.json();
       if (!r.ok || !j.ok) {
@@ -77,6 +166,12 @@ export function SubOrder({ initialCurrency = "cny" }: { initialCurrency?: Curren
       }
       setResult(j);
       setState("done");
+
+      // Only follow a checkout url the server actually returned for a live
+      // channel. Anything else stays on the confirmation step.
+      if (j.paymentUrl && typeof j.paymentUrl === "string" && j.manual === false) {
+        window.location.assign(j.paymentUrl);
+      }
     } catch {
       setErr("网络错误，请重试。");
       setState("err");
@@ -182,6 +277,13 @@ export function SubOrder({ initialCurrency = "cny" }: { initialCurrency?: Curren
           className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
         />
 
+        <PaymentMethodPicker
+          channels={channels}
+          method={method}
+          onChange={setMethod}
+          currency={currency}
+        />
+
         <button
           type="button"
           disabled={state === "busy"}
@@ -190,9 +292,13 @@ export function SubOrder({ initialCurrency = "cny" }: { initialCurrency?: Curren
         >
           {state === "busy"
             ? "提交中…"
-            : currency === "cny"
-              ? `订阅 ${active.label.cny} — ${formatPrice(active.price.cny, "cny")}`
-              : `Subscribe ${active.label.usd} — ${formatPrice(active.price.usd, "usd")}`}
+            : method
+              ? currency === "cny"
+                ? `用${method === "alipay" ? "支付宝" : "微信"}支付 ${formatPrice(active.price.cny, "cny")}`
+                : `Subscribe ${active.label.usd} — ${formatPrice(active.price.usd, "usd")}`
+              : currency === "cny"
+                ? `订阅 ${active.label.cny} — ${formatPrice(active.price.cny, "cny")}`
+                : `Subscribe ${active.label.usd} — ${formatPrice(active.price.usd, "usd")}`}
         </button>
 
         {state === "done" && result && (

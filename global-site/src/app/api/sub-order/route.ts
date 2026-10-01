@@ -3,8 +3,15 @@ import { randomUUID } from "crypto";
 
 import { getPlan, isCurrency, priceOf, PLANS, FREE_USES } from "@/lib/pricing";
 import type { PlanId } from "@/lib/pricing";
-import { isChannelLive, anyChannelLive, paymentChannels } from "@/lib/payments";
+import {
+  isChannelLive,
+  anyChannelLive,
+  paymentChannels,
+  channelSupportsCurrency,
+} from "@/lib/payments";
 import type { PaymentMethod } from "@/lib/referral";
+import { buildPagePay, AlipayNotConfiguredError } from "@/lib/alipay";
+import { saveOrder, ordersAvailable } from "@/lib/orders";
 
 /**
  * Subscription order intake.
@@ -83,8 +90,13 @@ export async function POST(req: Request) {
   const methodRaw = String(body.paymentMethod || "");
   const requested =
     methodRaw === "alipay" || methodRaw === "wechat" ? (methodRaw as PaymentMethod) : null;
+
+  // A channel that is live but cannot settle this currency is also downgraded.
+  // Alipay settles CNY only, so a USD order must not be sent to its gateway.
   const method: PaymentMethod | null =
-    requested && isChannelLive(requested) ? requested : null;
+    requested && isChannelLive(requested) && channelSupportsCurrency(requested, currency)
+      ? requested
+      : null;
 
   const price = priceOf(planRaw as PlanId, currency);
 
@@ -104,8 +116,99 @@ export async function POST(req: Request) {
     ts: new Date().toISOString(),
   };
 
-  // Durable-enough record. The filesystem is read-only on serverless, so this
-  // is a log line plus an optional external webhook. Neither grants access.
+  // Online checkout additionally requires somewhere to record the order: the
+  // payment notification has to reconcile against a stored amount, and without
+  // storage there is nothing to grant access against. Rather than take money we
+  // cannot later honour, fall back to the manual path.
+  if (method === "alipay") {
+    if (!ordersAvailable()) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "在线支付正在配置中（订单存储尚未就绪），暂时无法直接付款。请提交订单后由我们人工确认开通。",
+        },
+        { status: 503 }
+      );
+    }
+
+    try {
+      // out_trade_no is what Alipay echoes on both the return redirect and the
+      // async notify, so the order id is used directly as the trade number.
+      const pay = buildPagePay({
+        outTradeNo: orderId,
+        amount: price,
+        subject: `Shiftless ${plan.id} 订阅 ${plan.months} 个月`,
+        passbackParams: orderId,
+      });
+
+      await saveOrder({
+        orderId,
+        outTradeNo: orderId,
+        email,
+        siteUrl,
+        plan: plan.id,
+        months: plan.months,
+        currency,
+        amount: price,
+        paymentMethod: "alipay",
+        status: "pending",
+        createdAt: order.ts,
+      });
+
+      console.log(
+        `[SUB-ORDER] ${orderId} alipay checkout created for CNY ${price} (${plan.months}mo)`
+      );
+
+      const hook = process.env.ORDER_WEBHOOK_URL;
+      if (hook) {
+        fetch(hook, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(order),
+        }).catch(() => {});
+      }
+
+      return NextResponse.json({
+        ok: true,
+        orderId,
+        plan: plan.id,
+        months: plan.months,
+        currency,
+        price,
+        priceCny: currency === "cny" ? price : undefined,
+        siteUrl,
+        manual: false,
+        onlineCheckoutAvailable: true,
+        // The customer is sent here by the client. It contains a signature, so it
+        // is not logged and not exposed to any other origin.
+        paymentUrl: pay.url,
+        freeUsesIncluded: FREE_USES,
+        channels: paymentChannels().map((c) => ({
+          id: c.id,
+          label: c.label,
+          live: c.live,
+        })),
+        nextStep: `订单 ${orderId} 已创建。请在支付宝完成支付，到账后自动开通 ${plan.months} 个月，无需重复付款。`,
+      });
+    } catch (e) {
+      if (e instanceof AlipayNotConfiguredError) {
+        return NextResponse.json(
+          { ok: false, error: "支付宝通道配置不完整，暂时无法支付。" },
+          { status: 503 }
+        );
+      }
+      console.error(`[SUB-ORDER] alipay checkout failed for ${orderId}`, e);
+      return NextResponse.json(
+        { ok: false, error: "创建支付失败，请稍后再试。" },
+        { status: 502 }
+      );
+    }
+  }
+
+  // Durable-enough record for the manual path. The filesystem is read-only on
+  // serverless, so this is a log line plus an optional external webhook.
+  // Neither grants access.
   console.log(`[SUB-ORDER] ${JSON.stringify(order)}`);
 
   const hook = process.env.ORDER_WEBHOOK_URL;
@@ -139,10 +242,10 @@ export async function POST(req: Request) {
       label: c.label,
       live: c.live,
     })),
+    // WeChat is the only channel that can reach here as a live online method
+    // (Alipay returns earlier with a paymentUrl).
     nextStep: method
-      ? `订单已记录（${orderId}）。请完成${
-          method === "alipay" ? "支付宝" : "微信"
-        }支付；到账后自动开通，${plan.months} 个月有效期从到账当天算起。`
+      ? `订单已记录（${orderId}）。请完成微信支付；到账后自动开通 ${plan.months} 个月。`
       : online
         ? `订单已记录（${orderId}）。你选择的在线通道当前不可用，请改选其他支付方式，或提交后由我们人工确认。`
         : `订单已记录（${orderId}）。在线支付尚未开通，请提交订单后线下转账并备注订单号；我们人工核对到账后开通 ${plan.months} 个月。`,
