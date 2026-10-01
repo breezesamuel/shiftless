@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 type Quota = {
   signedIn: boolean;
   storage?: "ready" | "unconfigured";
+  loginReady?: boolean;
   email?: string;
   freeUsesTotal: number;
   used: number | null;
@@ -118,37 +119,52 @@ export function FreeQuotaCard() {
             新用户自动获得 10 次免费审计，覆盖官网根页与 11 项可读性检查。
             免费额度仅含单页审计，不含季度对比与整改建议。
           </p>
-          <p className="mt-1 text-xs text-emerald-700">
-            用邮箱登录即可看到并跟踪你自己的剩余次数。
-          </p>
-          {state !== "sent" && (
-            <div className="mt-3 flex flex-wrap items-end gap-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
-                aria-label="邮箱"
-                className="w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-700 sm:w-64"
-              />
-              <button
-                type="button"
-                onClick={requestLink}
-                disabled={state === "busy" || !email}
-                className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
-              >
-                {state === "busy" ? "发送中…" : "获取登录链接"}
-              </button>
-            </div>
-          )}
-          {state === "sent" && (
-            <p className="mt-3 rounded-lg bg-white px-4 py-3 text-sm text-emerald-800">
-              {msg}
-            </p>
-          )}
-          {state === "err" && (
-            <p className="mt-3 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-800">
-              {err}
+          {q?.loginReady ? (
+            <>
+              <p className="mt-1 text-xs text-emerald-700">
+                用邮箱登录即可看到并跟踪你自己的剩余次数。
+              </p>
+              {state !== "sent" && (
+                <div className="mt-3 flex flex-wrap items-end gap-2">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    aria-label="邮箱"
+                    className="w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-700 sm:w-64"
+                  />
+                  <button
+                    type="button"
+                    onClick={requestLink}
+                    disabled={state === "busy" || !email}
+                    className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
+                  >
+                    {state === "busy" ? "发送中…" : "获取登录链接"}
+                  </button>
+                </div>
+              )}
+              {state === "sent" && (
+                <p className="mt-3 rounded-lg bg-white px-4 py-3 text-sm text-emerald-800">
+                  {msg}
+                </p>
+              )}
+              {state === "err" && (
+                <p className="mt-3 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                  {err}
+                </p>
+              )}
+            </>
+          ) : (
+            // Offer nothing rather than a button that can only fail. Claiming
+            // login exists while it cannot work is worse than admitting the
+            // feature is not live yet.
+            <p className="mt-1 text-xs text-emerald-700">
+              邮箱登录正在上线。想先聊聊，可以在
+              <a href="/geo" className="underline">
+                联系我们
+              </a>
+              。
             </p>
           )}
         </>

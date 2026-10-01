@@ -173,5 +173,22 @@ check("StorageNotConfiguredError is exported and named", () => {
     assert.ok(!/FREE_USES_LIMIT\s*=\s*\d+/.test(card));
   });
 
+  check("login button is gated on loginReady", () => {
+    const card = readSource("src/components/FreeQuotaCard.tsx");
+    assert.ok(/q\?\.loginReady/.test(card), "card must branch on loginReady");
+    // The email input must live inside the loginReady branch, not beside it.
+    const inputAt = card.indexOf('type="email"');
+    const gateAt = card.indexOf("q?.loginReady ?");
+    const elseAt = card.indexOf("邮箱登录正在上线");
+    assert.ok(gateAt !== -1 && elseAt !== -1);
+    assert.ok(inputAt > gateAt && inputAt < elseAt, "email input must be inside the ready branch");
+  });
+
+  check("quota route exposes loginReady requiring both KV and SMTP", () => {
+    assert.ok(/function loginReady/.test(quota));
+    assert.ok(/isKvConfigured\(\) && smtpConfigured\(\)/.test(quota));
+    assert.ok((quota.match(/loginReady: loginReady\(\)/g) || []).length >= 3);
+  });
+
   console.log(`\n${passed} checks passed`);
 })();

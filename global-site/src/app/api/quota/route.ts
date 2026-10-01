@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifySession } from "@/lib/auth";
+import { smtpConfigured } from "@/lib/mail";
 import {
   getQuota,
   storageState,
+  isKvConfigured,
   StorageNotConfiguredError,
   FREE_USES_LIMIT,
 } from "@/lib/store";
+
+/**
+ * Login needs both a database to record the session and an SMTP transport to
+ * deliver the link. Either one missing means the "email me a login link" button
+ * cannot succeed, so the client uses this to decide whether to offer it at all
+ * rather than letting visitors click something that will only fail.
+ */
+function loginReady(): boolean {
+  return isKvConfigured() && smtpConfigured();
+}
 
 /**
  * Current free-tier usage for the signed-in user.
@@ -25,6 +37,7 @@ export async function GET() {
       ok: true,
       signedIn: false,
       storage,
+      loginReady: loginReady(),
       freeUsesTotal: FREE_USES_LIMIT,
       used: 0,
       remaining: FREE_USES_LIMIT,
@@ -39,6 +52,7 @@ export async function GET() {
       ok: true,
       signedIn: true,
       storage,
+      loginReady: loginReady(),
       email: session.email,
       freeUsesTotal: FREE_USES_LIMIT,
       used: quota.uses,
@@ -51,6 +65,7 @@ export async function GET() {
         ok: true,
         signedIn: true,
         storage: "unconfigured",
+        loginReady: loginReady(),
         email: session.email,
         freeUsesTotal: FREE_USES_LIMIT,
         used: null,
