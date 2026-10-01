@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FreeQuotaCard } from "@/components/FreeQuotaCard";
 import { GeoOrder } from "@/components/GeoOrder";
 
 export const metadata: Metadata = {
@@ -148,8 +149,11 @@ export default function GeoAuditPage() {
 
         {/* Order */}
         <section id="order" className="border-t border-slate-200 bg-white py-14">
-          <div className="mx-auto max-w-4xl px-6">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">下单</h2>
+<div className="mx-auto max-w-4xl px-6">
+              <div className="mb-6">
+                <FreeQuotaCard />
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900">下单</h2>
             <p className="mt-2 mb-6 text-slate-600">
               先看样板，再决定买不买。转账对公/微信/支付宝均可，备注订单号即可。
             </p>
