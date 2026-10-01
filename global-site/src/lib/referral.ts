@@ -11,17 +11,21 @@
  *   - 3 successful referrals, each paid a quarter -> +3 months credit
  *   - 10 successful referrals, each paid a year  -> +12 months credit
  *
- * Two design decisions that the spec did not spell out, resolved the
- * conservative way so we never over-grant:
+ * Rewards are CUMULATIVE: tiers that have been reached are added together, so
+ * ten annual referrals earn 1 + 3 + 12 = 16 months. A referral that satisfies
+ * several tiers contributes to all of them — ten annual referrals each clear
+ * the 1-month, 3-quarter and 10-annual bars simultaneously.
  *
- *   1. Tiered rewards are NOT cumulative. Someone who hits 10 annual
- *      referrals gets 12 months, not 1+3+12=16. Cumulative would be the
- *      more generous reading; only the exclusive ladder is safe to promise.
+ * Two invariants still guard the money, regardless of cumulation:
  *
- *   2. A referral only counts once they have actually paid, and only at the
+ *   1. A referral only counts once they have actually paid, and only at the
  *      depth that was paid for. A free user who signs up and never pays
  *      contributes zero, and a referral who paid one month does not satisfy
  *      a rule that requires a quarter. `qualifiesFor` encodes that.
+ *
+ *   2. Each referral is counted at most once, per tier. A replayed payment
+ *      webhook or a double-submitted form must not be able to inflate any
+ *      tier. `dedupeReferrals` and `paidRefs` enforce that.
  */
 
 import type { Currency, PlanId } from "./pricing";
@@ -58,8 +62,8 @@ export type RewardTier = {
 };
 
 /**
- * The exclusive ladder. Ordered ascending; `bestTier` returns the highest
- * satisfied tier, never a sum.
+ * The ladder. Ordered ascending; all tiers reached are granted and summed
+ * (cumulative), so ten annual referrals earn 1 + 3 + 12 = 16 months.
  */
 export const REWARD_TIERS: RewardTier[] = [
   {
@@ -120,7 +124,7 @@ export type RewardProgress = {
   qualified: number;
   /** Referrals with any confirmed payment at all. */
   paidReferrals: number;
-  /** Refererals who have paid at least once but not this tier's depth. */
+  /** Referrals who paid at least once but not this tier's depth. */
   paidButTooShallow: number;
   /** True once `qualified >= tier.minReferrals`. */
   reached: boolean;
@@ -171,22 +175,31 @@ export function rewardProgress(referrals: Referral[]): RewardProgress[] {
   });
 }
 
-/** The highest tier the referrer has actually unlocked. Never a sum. */
-export function bestTier(referrals: Referral[]): RewardTier {
+/**
+ * Every tier the referrer has reached, ascending. Under cumulative rules all
+ * reached tiers are granted, so this list is what gets summed.
+ */
+export function unlockedTiers(referrals: Referral[]): RewardTier[] {
   const paid = paidRefs(referrals);
-  let best = REWARD_TIERS[0];
-  for (const tier of REWARD_TIERS) {
-    if (tier.minReferrals === 0) continue;
-    if (paid.filter((r) => qualifiesFor(r, tier)).length >= tier.minReferrals) {
-      best = tier;
-    }
-  }
-  return best;
+  return REWARD_TIERS.filter(
+    (t) =>
+      t.minReferrals > 0 &&
+      paid.filter((r) => qualifiesFor(r, t)).length >= t.minReferrals
+  );
 }
 
-/** Total months of credit granted. Exclusive ladder => just the best tier. */
+/** The highest tier the referrer has actually unlocked. Display only. */
+export function bestTier(referrals: Referral[]): RewardTier {
+  const unlocked = unlockedTiers(referrals);
+  return unlocked.length ? unlocked[unlocked.length - 1] : REWARD_TIERS[0];
+}
+
+/**
+ * Total months of credit granted. CUMULATIVE: the sum of every reached tier,
+ * so ten annual referrals earn 1 + 3 + 12 = 16 months.
+ */
 export function grantedMonths(referrals: Referral[]): number {
-  return bestTier(referrals).grantMonths;
+  return unlockedTiers(referrals).reduce((sum, t) => sum + t.grantMonths, 0);
 }
 
 /**

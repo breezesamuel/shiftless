@@ -327,27 +327,24 @@ async function handle(req: Request) {
     if (req.headers.get("authorization") !== `Bearer ${CRON_SECRET}`) {
       return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
     }
-
-    // If-None-Match: skip the expensive audit if baseline hasn't changed.
-    // ETag format: "quarter|host1:score1|host2:score2|..."
-    const all = listSubscribers();
-    if (all.length > 0 && !forced) {
-      let etagParts = [quarterOf(new Date())];
-      for (const sub of all.slice(0, MAX_SITES)) {
-        const host = hostOf(sub.url);
-        if (!host) continue;
-        const base = await loadBaseline(origin, host);
-        if (base) {
-          const basePage = base.pages.find((p) => new URL(p.url).pathname === "/") || base.pages[0];
-          etagParts.push(`${host}:${basePage.score}:${base.quarter}`);
-        }
-      }
-      const etag = `"${etagParts.join("|")}"`;
-      if (req.headers.get("if-none-match") === etag) {
-        return new NextResponse(null, { status: 304, headers: { ETag: etag } });
-      }
-    }
   }
+
+  // NOTE: this endpoint deliberately does NOT implement If-None-Match / 304.
+  //
+  // An earlier version returned 304 when the client presented a matching ETag,
+  // computed from the published baseline. That was wrong twice over:
+  //
+  //   1. The 304 check ran BEFORE isQuarterStart(), so on Jan/Apr/Jul/Oct a
+  //      conditional request would short-circuit the audit. The one day the
+  //      cron must actually do work was the one day it could silently skip.
+  //   2. It was keyed on the PUBLISHED baseline, which only changes after a
+  //      successful run. So within a quarter every client got a stable 304,
+  //      and a re-audit could never be forced through the cache.
+  //
+  // The endpoint is a job trigger, not a cacheable document. Quarterly
+  // re-audits are expensive and infrequent; caching them buys nothing and
+  // risks skipping the audit that customers are paying for. Static baselines
+  // under /public/baselines are the thing that is actually cacheable.
 
   const now = new Date();
   const all = listSubscribers();
