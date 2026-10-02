@@ -46,6 +46,24 @@ function money(n: number, en: boolean): string {
   return `¥${Math.round(n * 7.2).toLocaleString("zh-CN")}`;
 }
 
+/**
+ * Payback needs three cases, not two.
+ *
+ * The model returns Infinity — not null — when the investment never pays back,
+ * and printing that raw produces "Payback Infinity months". That is the same
+ * class of bug as the old `?m=0` publishing Infinity into a public permalink,
+ * so it gets the same explicit handling here rather than being stringified.
+ */
+function paybackText(v: number, en: boolean): string {
+  if (!Number.isFinite(v)) return en ? "never pays back" : "永不回本";
+  return en ? `${v} months` : `${v} 个月`;
+}
+
+function agentsText(n: number, en: boolean): string {
+  if (en) return `${n} agent${n === 1 ? "" : "s"}`;
+  return `${n} 人`;
+}
+
 export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }) {
   const en = lang === "en";
   const { industry, volume, band, aht, scenario, inputs, output } = spec;
@@ -53,7 +71,7 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
   const verdict = VERDICT_TEXT[output.verdict];
 
   const title = en
-    ? `${industryLabel(industry.slug, true)} support team: ${output.agentsNeeded} agents for ${volume.toLocaleString("en-US")} tickets/month`
+    ? `${industryLabel(industry.slug, true)} support team: ${agentsText(output.agentsNeeded, true)} for ${volume.toLocaleString("en-US")} tickets/month`
     : `${industryLabel(industry.slug, false)}客服团队：每月 ${volume.toLocaleString("zh-CN")} 条工单需要 ${output.agentsNeeded} 人`;
 
   // Carry this page's exact inputs into the calculator so the reader can move
@@ -136,7 +154,7 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
             value={String(output.headsRemoved)}
             sub={
               en
-                ? `${output.agentsAfterAutomation} agents remain`
+                ? `${agentsText(output.agentsAfterAutomation, true)} remain`
                 : `保留 ${output.agentsAfterAutomation} 人`
             }
           />
@@ -151,7 +169,7 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
           />
           <Stat
             label={en ? "Payback" : "回本周期"}
-            value={output.paybackMonths === null ? (en ? "never" : "不回本") : `${output.paybackMonths} mo`}
+            value={paybackText(output.paybackMonths, en)}
             sub={en ? "at this volume" : "以当前量级"}
           />
           <Stat

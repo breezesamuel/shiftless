@@ -48,10 +48,14 @@ export function generateMetadata({ params }: Props): Metadata {
 
   const { industry, volume, output } = spec;
   const slugs = `${params.industry}/${params.band}/${params.volume}/${params.aht}/${params.scenario}`;
+  // See the English route: Infinity here would publish "Infinity 个月".
+  const payback = Number.isFinite(output.paybackMonths)
+    ? `${output.paybackMonths} 个月`
+    : "永不回本";
 
   return {
     title: `${industryLabel(industry.slug, false)}客服团队：每月 ${volume.toLocaleString("zh-CN")} 条工单需要 ${output.agentsNeeded} 人`,
-    description: `${industryLabel(industry.slug, false)}团队每月处理 ${volume.toLocaleString("zh-CN")} 条工单，按当前 AHT 约需 ${output.agentsNeeded} 名客服。人力成本约每月 ${Math.round(output.monthlyLaborCost * 7.2).toLocaleString("zh-CN")} 元；自动化可减少约 ${output.headsRemoved} 人。回本 ${output.paybackMonths ?? "不"} 个月。`,
+    description: `${industryLabel(industry.slug, false)}团队每月处理 ${volume.toLocaleString("zh-CN")} 条工单，按当前 AHT 约需 ${output.agentsNeeded} 名客服。人力成本约每月 ${Math.round(output.monthlyLaborCost * 7.2).toLocaleString("zh-CN")} 元；自动化可减少约 ${output.headsRemoved} 人。回本 ${payback}。`,
     alternates: {
       canonical: `/zh/roi/${slugs}`,
       languages: { en: `/roi/${slugs}`, "zh-CN": `/zh/roi/${slugs}`, "x-default": `/roi/${slugs}` },

@@ -54,11 +54,18 @@ export function generateMetadata({ params }: Props): Metadata {
 
   const { industry, volume, output, inputs } = spec;
   const slugs = `${params.industry}/${params.band}/${params.volume}/${params.aht}/${params.scenario}`;
-  const title = `${industryLabel(industry.slug, true)} support team: ${output.agentsNeeded} agents for ${volume.toLocaleString("en-US")} tickets/month`;
+  const agents = output.agentsNeeded;
+  const title = `${industryLabel(industry.slug, true)} support team: ${agents} agent${agents === 1 ? "" : "s"} for ${volume.toLocaleString("en-US")} tickets/month`;
+  // Infinity, not null: the model signals "never pays back" with a non-finite
+  // number, and stringifying that here would publish "Infinity months" to
+  // search results.
+  const payback = Number.isFinite(output.paybackMonths)
+    ? `${output.paybackMonths} months`
+    : "never pays back";
 
   return {
     title,
-    description: `A ${industryLabel(industry.slug, true)} team handling ${volume.toLocaleString("en-US")} tickets/month at ${inputs.ahtMinutes} min AHT needs about ${output.agentsNeeded} agents. Labour cost ${Math.round(output.monthlyLaborCost).toLocaleString("en-US")}/mo; automation removes ~${output.headsRemoved}. Payback ${output.paybackMonths ?? "never"} months.`,
+    description: `A ${industryLabel(industry.slug, true)} team handling ${volume.toLocaleString("en-US")} tickets/month at ${inputs.ahtMinutes} min AHT needs about ${agents} agent${agents === 1 ? "" : "s"}. Labour cost ${Math.round(output.monthlyLaborCost).toLocaleString("en-US")}/mo; automation removes ~${output.headsRemoved}. Payback ${payback}.`,
     alternates: {
       canonical: `/roi/${slugs}`,
       languages: { en: `/roi/${slugs}`, "zh-CN": `/zh/roi/${slugs}`, "x-default": `/roi/${slugs}` },

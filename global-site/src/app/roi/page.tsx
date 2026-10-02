@@ -82,7 +82,7 @@ export default function RoiIndex() {
                         className="block rounded border border-slate-200 bg-white px-3 py-2 text-sm hover:border-slate-400"
                       >
                         <span className="font-medium text-slate-900">
-                          {p.output.agentsNeeded} agents
+                          {p.output.agentsNeeded} agent{p.output.agentsNeeded === 1 ? "" : "s"}
                         </span>{" "}
                         <span className="text-slate-500">
                           · {p.volume.toLocaleString("en-US")}/mo · {bandLabel(p.band.slug, true)}
