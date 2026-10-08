@@ -78,8 +78,14 @@ export async function GET() {
         "magic-link auth and order persistence are all inert."
     );
   }
-  if (!checks.alipayAppId || !checks.alipayPrivateKey) {
+  const onlinePay = checks.paypalConfigured || (checks.alipayAppId && checks.alipayPrivateKey);
+  if (!onlinePay) {
     problems.push("No payment credential: orders fall back to manual transfer instruction.");
+  } else if (!checks.alipayAppId || !checks.alipayPrivateKey) {
+    problems.push(
+      "PayPal is live for USD, but CNY orders have no Alipay merchant credential " +
+        "and still fall back to manual transfer."
+    );
   }
   if (!checks.smtpConfigured) {
     problems.push("No mail provider: magic-link login cannot deliver a message.");
