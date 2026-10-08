@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "../globals.css";
 
 const SITE = "https://shiftless.vercel.app";
 
@@ -19,9 +19,6 @@ export const metadata: Metadata = {
     "ecommerce support cost calculator",
     "tickets per agent",
   ],
-  // Verified against the served HTML: og:url was missing entirely. A share card
-  // without og:url lets every platform guess the canonical URL, and the guess is
-  // frequently the tracking-parameter variant, which splits link equity.
   openGraph: {
     type: "website",
     siteName: "Shiftless",
@@ -37,10 +34,6 @@ export const metadata: Metadata = {
     description:
       "How many support agents do you need? Free, no signup, instant answer.",
   },
-  // hreflang lives on the individual pages that declare alternates, not here:
-  // declaring a zh-CN alternate at the root layout would attach it to /geo and
-  // /embed too, advertising two relationships to pages that should not have
-  // them. Each indexable page declares only its own.
   alternates: {
     canonical: SITE,
   },
@@ -54,7 +47,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default function EnLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -29,7 +29,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  const slugs = pages.map((p) => `${p.industry.slug}/${p.band.slug}/${p.volume}/${p.aht.slug}/${p.scenario.slug}`);
+  // Only pages the model actually recommends belong in the sitemap. The rest
+  // are deliberately noindex: advertising them here would tell crawlers to
+  // index something the page itself tells crawlers not to index — a direct,
+  // machine-checkable contradiction that hurts the pages that DO want in.
+  const slugs = pages
+    .filter((p) => !p.notWorthIt)
+    .map((p) => `${p.industry.slug}/${p.band.slug}/${p.volume}/${p.aht.slug}/${p.scenario.slug}`);
 
   const programmatic: MetadataRoute.Sitemap = [
     ...slugs.map((s) => ({

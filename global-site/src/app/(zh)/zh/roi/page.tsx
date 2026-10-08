@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { buildCorpus, INDUSTRIES, industryLabel, bandLabel } from "@/lib/corpus";
+import { buildCorpus, INDUSTRIES, industryLabel } from "@/lib/corpus";
 
 export const metadata: Metadata = {
   title: "各行业客服编制与 AI 自动化回本测算",
@@ -49,39 +49,21 @@ export default function ZhRoiIndex() {
           </p>
         </div>
 
-        <div className="mt-10 space-y-10">
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {INDUSTRIES.map((industry) => {
             const rows = pages.filter((p) => p.industry.slug === industry.slug);
             if (rows.length === 0) return null;
             return (
-              <section key={industry.slug}>
-                <h2 className="text-xl font-bold text-slate-900">
+              <Link
+                key={industry.slug}
+                href={`/zh/roi/industry/${industry.slug}`}
+                className="rounded-lg border border-slate-200 bg-white p-4 hover:border-slate-400"
+              >
+                <h2 className="text-base font-semibold text-slate-900">
                   {industryLabel(industry.slug, false)}
-                  <span className="ml-2 text-sm font-normal text-slate-500">
-                    {rows.length} 个页面
-                  </span>
                 </h2>
-                <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {rows.map((p) => (
-                    <li key={`${p.band.slug}-${p.volume}-${p.aht.slug}-${p.scenario.slug}`}>
-                      <Link
-                        href={`/zh/roi/${p.industry.slug}/${p.band.slug}/${p.volume}/${p.aht.slug}/${p.scenario.slug}`}
-                        className="block rounded border border-slate-200 bg-white px-3 py-2 text-sm hover:border-slate-400"
-                      >
-                        <span className="font-medium text-slate-900">
-                          {p.output.agentsNeeded} 人
-                        </span>{" "}
-                        <span className="text-slate-500">
-                          · {p.volume.toLocaleString("zh-CN")}/月 · {bandLabel(p.band.slug, false)}
-                        </span>
-                        {p.output.verdict === "not-worth-it" && (
-                          <span className="ml-1 text-xs text-rose-600">（不值得）</span>
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+                <p className="mt-1 text-sm text-slate-500">{rows.length} 个页面</p>
+              </Link>
             );
           })}
         </div>

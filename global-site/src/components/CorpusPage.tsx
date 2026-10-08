@@ -78,16 +78,10 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
   // their own numbers rather than only reading ours.
   const permalink = shareUrl(inputs, BASE);
 
-  const slugs = `${industry.slug}/${band.slug}/${volume}/${aht.slug}/${scenario.slug}`;
-  const alt = en ? `/zh/roi/${slugs}` : `/roi/${slugs}`;
-
   return (
     <div className="flex min-h-screen flex-col">
-      <head>
-        <link rel="alternate" hrefLang={en ? "en" : "zh-CN"} href={`${BASE}${alt}`} />
-        <link rel="alternate" hrefLang="x-default" href={`${BASE}/roi/${slugs}`} />
-      </head>
-
+      {/* hreflang is declared in generateMetadata (alternates.languages). A manual
+          <head> here used to shadow it into the body, where it is ignored. */}
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-6">
           <span className="text-lg font-bold tracking-tight text-slate-900">Shiftless</span>
@@ -125,9 +119,9 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
             {en ? "Verdict" : "结论"}: {verdict[lang]}
           </p>
           <ul className="mt-2 space-y-1 text-sm">
-            {output.reasons.map((r, i) => (
+            {(en ? output.reasons : output.reasonsZh).map((r, i) => (
               <li key={i}>
-                {en ? r : r}
+                {r}
               </li>
             ))}
           </ul>

@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { buildCorpus, INDUSTRIES, HEADCOUNT_BANDS, industryLabel, bandLabel } from "@/lib/corpus";
+import { buildCorpus, INDUSTRIES, industryLabel } from "@/lib/corpus";
 
 /**
  * Hub for the programmatic set.
  *
  * These pages are not orphans: without an internal link path a crawler has no
- * way to reach 997 URLs from the homepage. This page links every published
- * combination, grouped so the structure is legible to a human and crawlable
- * without deep nesting.
+ * way to reach the deep routes from the homepage. This page indexes every
+ * industry, and each industry index page lists that industry's scenarios, so
+ * the page weight stays bounded instead of shipping thousands of links in one
+ * document.
  */
 
 export const metadata: Metadata = {
@@ -62,39 +63,21 @@ export default function RoiIndex() {
           </p>
         </div>
 
-        <div className="mt-10 space-y-10">
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {INDUSTRIES.map((industry) => {
             const rows = pages.filter((p) => p.industry.slug === industry.slug);
             if (rows.length === 0) return null;
             return (
-              <section key={industry.slug}>
-                <h2 className="text-xl font-bold text-slate-900">
+              <Link
+                key={industry.slug}
+                href={`/roi/industry/${industry.slug}`}
+                className="rounded-lg border border-slate-200 bg-white p-4 hover:border-slate-400"
+              >
+                <h2 className="text-base font-semibold text-slate-900">
                   {industryLabel(industry.slug, true)}
-                  <span className="ml-2 text-sm font-normal text-slate-500">
-                    {rows.length} pages
-                  </span>
                 </h2>
-                <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {rows.map((p) => (
-                    <li key={`${p.band.slug}-${p.volume}-${p.aht.slug}-${p.scenario.slug}`}>
-                      <Link
-                        href={`/roi/${p.industry.slug}/${p.band.slug}/${p.volume}/${p.aht.slug}/${p.scenario.slug}`}
-                        className="block rounded border border-slate-200 bg-white px-3 py-2 text-sm hover:border-slate-400"
-                      >
-                        <span className="font-medium text-slate-900">
-                          {p.output.agentsNeeded} agent{p.output.agentsNeeded === 1 ? "" : "s"}
-                        </span>{" "}
-                        <span className="text-slate-500">
-                          · {p.volume.toLocaleString("en-US")}/mo · {bandLabel(p.band.slug, true)}
-                        </span>
-                        {p.output.verdict === "not-worth-it" && (
-                          <span className="ml-1 text-xs text-rose-600">(not worth it)</span>
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+                <p className="mt-1 text-sm text-slate-500">{rows.length} pages</p>
+              </Link>
             );
           })}
         </div>

@@ -123,13 +123,13 @@ check("no naive '${output.agents...} agents' concatenation remains",
   naiveConcats.length === 0,
   naiveConcats.map((m) => m[0]).join(" | "));
 
-const enRoute = read("src/app/roi/[industry]/[band]/[volume]/[aht]/[scenario]/page.tsx");
+const enRoute = read("src/app/(en)/roi/[industry]/[band]/[volume]/[aht]/[scenario]/page.tsx");
 const naiveEn = [...enRoute.matchAll(/\$\{output\.agentsNeeded\} agents/g)];
 check("no naive pluralisation in the English metadata generator",
   naiveEn.length === 0, naiveEn.map((m) => m[0]).join(" | "));
 
 // And the other unrenderable-number guard, on the hub pages too.
-const hub = read("src/app/roi/page.tsx");
+const hub = read("src/app/(en)/roi/page.tsx");
 check("hub page pluralises agent counts",
   !/\{p\.output\.agentsNeeded\} agents/.test(hub),
   "hub still concatenates agentsNeeded with a bare plural");

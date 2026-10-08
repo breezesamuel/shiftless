@@ -141,37 +141,47 @@ function compute(i) {
     const paybackMonths = monthlyNetEffect > 0 ? (oneOff + monthlyPlatformCost) / monthlyNetEffect : Infinity;
     // --- Verdict ---
     const reasons = [];
+    const reasonsZh = [];
     let verdict;
     if (coverageCeilingExceeded) {
         reasons.push(`You entered ${Math.round(i.automationCoverage * 100)}% coverage. For ${ch.label.toLowerCase()}, the realistic ceiling is about ${Math.round(ch.deflectable * 100)}%, so we modelled the ceiling. Higher figures usually come from a pilot that excluded escalations.`);
+        reasonsZh.push(`输入的覆盖率为 ${Math.round(i.automationCoverage * 100)}%。${ch.label} 行业现实上限约为 ${Math.round(ch.deflectable * 100)}%，因此我们按上限建模。更高的数据通常来自排除了升级工单的试点。`);
     }
     if (monthlyNetEffect <= 0) {
         verdict = "not-worth-it";
         reasons.push(`At ${i.monthlyTickets.toLocaleString()} tickets/month, the platform costs more than the headcount it lets you avoid. That is the honest answer for your volume.`);
+        reasonsZh.push(`每月 ${i.monthlyTickets.toLocaleString()} 张工单的量级下，平台成本高于它替你避免的人力成本。就当前工单量而言，这是实话。`);
     }
     else if (paybackMonths > 24) {
         verdict = "marginal";
         reasons.push(`Payback is ${Math.round(paybackMonths)} months — defensible only if you expect this volume for years.`);
+        reasonsZh.push(`回本周期 ${Math.round(paybackMonths)} 个月——只有预估该工单量能维持数年才值得。`);
     }
     else if (paybackMonths > 12) {
         verdict = "workable";
         reasons.push(`${paybackMonths.toFixed(1)}-month payback. Reasonable for a support org, but it is not a quick win.`);
+        reasonsZh.push(`${paybackMonths.toFixed(1)} 个月回本。对客服组织而言合理，但谈不上速胜。`);
     }
     else {
         verdict = "strong";
         reasons.push(`${paybackMonths.toFixed(1)}-month payback and ${yearOneRoi.toFixed(1)}x first-year return on a ${monthlyPlatformCost.toFixed(0)}/month platform fee.`);
+        reasonsZh.push(`${paybackMonths.toFixed(1)} 个月回本，年度平台费 ${monthlyPlatformCost.toFixed(0)}/月，首年回报 ${yearOneRoi.toFixed(1)}x。`);
     }
     if (i.monthlyTickets < 400) {
         reasons.push("Below ~400 tickets/month, a good help centre and one accountable human usually beat a paid platform on both cost and quality.");
+        reasonsZh.push("每月工单低于约 400 时，完善的帮助中心加一个负责人通常在成本和质量上都优于付费平台。");
     }
     if (agentsRange[1] - agentsRange[0] >= 2) {
         reasons.push(`Headcount spans ${agentsRange[0]}-${agentsRange[1]} agents across your industry's handle-time range. Measure your real AHT for two weeks before you budget - the band is usually wider than anyone expects.`);
+        reasonsZh.push(`在该行业的服务时长区间内，人力规模约在 ${agentsRange[0]}-${agentsRange[1]} 个坐席之间。建议先测量真实 AHT 两周再做预算——实际波动通常比预想的宽。`);
     }
     if (!i.layoffNow && headsRemoved >= 3) {
         reasons.push(`We phased the saving in over ${i.reductionMonths} months via attrition. Cutting ${headsRemoved} people on day one would cost roughly ${fmtShort(headsRemoved * labor * exports.SEVERANCE_MONTHS)} in severance and is usually worse than phasing it.`);
+        reasonsZh.push(`我们按 ${i.reductionMonths} 个月通过自然减员逐步落地节省。若第一天直接裁撤 ${headsRemoved} 人，仅遣散费约 ${fmtShort(headsRemoved * labor * exports.SEVERANCE_MONTHS)}，通常比渐进式更糟。`);
     }
     if (yearOneRoi > 6) {
         reasons.push(`A ${yearOneRoi.toFixed(1)}x return means a large share of your support cost was avoidable labour, not overhead. Re-check that handle time and loaded rate are right - if either is overstated the return collapses.`);
+        reasonsZh.push(`${yearOneRoi.toFixed(1)}x 的回报意味着你的大头成本其实是可以省的人力，而非必要开销。请复核服务时长和满载工时费率——若任一被高估，回报立刻塌缩。`);
     }
     return {
         agentsNeeded,
@@ -191,6 +201,7 @@ function compute(i) {
         paybackMonths,
         verdict,
         reasons,
+        reasonsZh,
     };
 }
 function fmtShort(n) {
