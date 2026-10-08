@@ -64,9 +64,25 @@ async function main() {
   const batches = [];
   for (let i = 0; i < urls.length; i += BATCH) batches.push(urls.slice(i, i + BATCH));
 
-  console.log(`pushing ${urls.length} urls in ${batches.length} batches (key ${key}…)`);
+  // Per-receiver results, because they are NOT interchangeable: Yandex
+  // verifies the key file itself and accepts, while Bing's endpoint answers
+    // 403 UserForbiddedToAccessSite for this domain even though the same key on
+    // the same site returns 200 to Yandex — that 403 is Bing Webmaster Tools
+  // domain verification, not a broken key. Treating them as one verdict hides
+  // which half actually works.
+  const ENDPOINTS = [
+    ["yandex", "https://yandex.com/indexnow"],
+    ["bing", "https://www.bing.com/indexnow"],
+    ["indexnow.org", "https://api.indexnow.org/indexnow"],
+  ];
 
-  let ok = 0;
+  console.log(
+    `pushing ${urls.length} urls in ${batches.length} batches x ${ENDPOINTS.length} receivers (key ${key}…)`
+  );
+
+  const tally = Object.fromEntries(ENDPOINTS.map(([n]) => [n, 0]));
+  const reasons = Object.fromEntries(ENDPOINTS.map(([n]) => [n, new Set()]));
+
   for (let i = 0; i < batches.length; i++) {
     const body = JSON.stringify({
       host: "shiftless.vercel.app",
@@ -74,36 +90,52 @@ async function main() {
       keyLocation: `${BASE}/${key}.txt`,
       urlList: batches[i],
     });
-    try {
-      const res = await fetch("https://api.indexnow.org/indexnow", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json; charset=utf-8",
-          authorization: `Bearer ${key}`,
-        },
-        body,
-      });
-      const text = (await res.text()).slice(0, 300);
-      const good = res.status === 200 || res.status === 202;
-      if (good) ok++;
-      console.log(
-        `  batch ${i + 1}/${batches.length}: ${batches[i].length} urls -> HTTP ${res.status}` +
-          (good ? "" : ` ${text}`)
-      );
-      if (res.status === 403) {
-        console.error(
-          "  key file not reachable at " +
-            `${BASE}/${key}.txt — deploy the [keyfile] route first.`
+    for (const [name, host] of ENDPOINTS) {
+      try {
+        const res = await fetch(host, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json; charset=utf-8",
+            authorization: `Bearer ${key}`,
+          },
+          body,
+        });
+        const text = (await res.text()).slice(0, 200);
+        const good = res.status === 200 || res.status === 202;
+        if (good) tally[name]++;
+        else reasons[name].add(`HTTP ${res.status} ${text}`);
+        console.log(
+          `  batch ${i + 1}/${batches.length} -> ${name}: HTTP ${res.status}` +
+            (good ? ` (${batches[i].length} urls)` : ` ${text.slice(0, 90)}`)
         );
+      } catch (e) {
+        reasons[name].add(`error: ${e.message}`);
+        console.log(`  batch ${i + 1} -> ${name} failed: ${e.message}`);
       }
-    } catch (e) {
-      console.error(`  batch ${i + 1} failed: ${e.message}`);
+      await new Promise((r) => setTimeout(r, 300));
     }
     if (i < batches.length - 1) await new Promise((r) => setTimeout(r, 1000));
   }
 
-  console.log(ok === batches.length ? `DONE: ${ok}/${batches.length} batches accepted` : `PARTIAL: ${ok}/${batches.length} batches accepted`);
-  process.exit(ok === batches.length ? 0 : 1);
+  console.log("\nper receiver:");
+  for (const [name] of ENDPOINTS) {
+    const all = tally[name] === batches.length;
+    const line = all
+      ? `  ${name}: ACCEPTED all ${batches.length} batches`
+      : `  ${name}: ${tally[name]}/${batches.length} batches` +
+        ([...reasons[name]].length ? ` — ${[...reasons[name]].join(" | ").slice(0, 300)}` : "");
+    console.log(line);
+  }
+
+  const anyFull = ENDPOINTS.some(([n]) => tally[n] === batches.length);
+  if (tally["bing"] !== batches.length && tally["yandex"] === batches.length) {
+    console.log(
+      "\nnote: Bing's 403 with a key Yandex accepts means the domain is not\n" +
+        "verified in Bing Webmaster Tools — verify the site there (XML file/tag,\n" +
+        "not the Google-import path) and re-run this script."
+    );
+  }
+  process.exit(anyFull ? 0 : 1);
 }
 
 main();

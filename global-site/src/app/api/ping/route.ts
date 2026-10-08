@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 
 import sitemap from "@/app/sitemap";
 
+// A full-sitemap push is 7 batches x 3 receivers with politeness sleeps —
+// roughly 25s. Without this the function is killed mid-push and the status
+// report would describe work that never finished.
+export const maxDuration = 60;
+
 /**
  * IndexNow ping — full sitemap push, not a token of four URLs.
  *
@@ -46,9 +51,9 @@ function locs(result: ReturnType<typeof sitemap>): string[] {
     .filter((u) => typeof u === "string" && u.startsWith(BASE));
 }
 
-async function push(key: string, urlList: string[]): Promise<string> {
+async function push(key: string, endpoint: string, urlList: string[]): Promise<string> {
   try {
-    const res = await fetch("https://api.indexnow.org/indexnow", {
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: {
         "content-type": "application/json; charset=utf-8",
@@ -91,18 +96,48 @@ export async function GET() {
   const results: Record<string, string> = {};
   let anyOk = false;
 
+  // The receivers are not interchangeable. Measured on this domain: Yandex
+  // verifies the key file and accepts (200/202) while Bing and the shared
+  // api.indexnow.org endpoint answer 403 UserForbiddedToAccessSite — a Bing
+  // Webmaster Tools verification, not a key problem. Reporting one combined
+  // verdict would either hide the working receiver or hide the broken one.
+  const targets: [string, string][] = [
+    ["yandex", "https://yandex.com/indexnow"],
+    ["bing", "https://www.bing.com/indexnow"],
+    ["indexnow.org", "https://api.indexnow.org/indexnow"],
+  ];
+
+  const tally: Record<string, number> = {};
+  for (const [name] of targets) tally[name] = 0;
+
   for (let i = 0; i < batches.length; i++) {
-    const status = await push(key, batches[i]);
-    results[`batch-${i + 1}`] = `${batches[i].length} urls -> ${status}`;
-    if (status === "200" || status === "202") anyOk = true;
-    // Last row of a batch — polite pause so we are not read as a burst.
+    for (const [name, endpoint] of targets) {
+      const status = await push(key, endpoint, batches[i]);
+      const good = status === "200" || status === "202";
+      if (good) tally[name]++;
+      results[`${name}-batch-${i + 1}`] = `${batches[i].length} urls -> ${status}`;
+      if (good) anyOk = true;
+      // Polite pause so the burst is not rate-limited (429).
+      await new Promise((r) => setTimeout(r, 300));
+    }
     if (i < batches.length - 1) {
       await new Promise((r) => setTimeout(r, 1000));
     }
   }
 
+  // ok = at least one receiver took every batch. A partial receiver (Bing
+  // pending Webmaster verification) is reported, not silently dropped.
+  const fullyAccepted = Object.keys(tally).filter((n) => tally[n] === batches.length);
+
   return NextResponse.json(
-    { ok: anyOk, total: all.length, batches: batches.length, results },
+    {
+      ok: fullyAccepted.length > 0,
+      total: all.length,
+      batches: batches.length,
+      receivers: tally,
+      accepted: fullyAccepted,
+      results,
+    },
     { status: anyOk ? 200 : 502 }
   );
 }

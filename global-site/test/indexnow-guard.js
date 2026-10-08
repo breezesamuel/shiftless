@@ -62,4 +62,22 @@ check("local push script reads the built sitemap and batches under the limit", (
   assert.ok(/keyLocation/.test(push), "keyLocation missing");
 });
 
+check("push hits each receiver separately and reports them separately", () => {
+  // Measured on this domain: Yandex accepts the key, Bing answers 403
+  // UserForbiddedToAccessSite because the domain is unverified in Bing
+  // Webmaster Tools. One combined verdict would hide both facts.
+  for (const [name, src] of [
+    ["ping", ping],
+    ["script", push],
+  ]) {
+    assert.ok(/yandex\.com\/indexnow/.test(src), `${name}: yandex receiver missing`);
+    assert.ok(/www\.bing\.com\/indexnow/.test(src), `${name}: bing receiver missing`);
+    assert.ok(
+      /api\.indexnow\.org\/indexnow/.test(src),
+      `${name}: shared endpoint missing`
+    );
+  }
+  assert.ok(/receivers: tally/.test(ping), "ping must report per-receiver tallies");
+});
+
 console.log(`\n${passed} indexnow checks passed`);
