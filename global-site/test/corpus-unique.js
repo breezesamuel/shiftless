@@ -172,8 +172,8 @@ console.log("Axes covered");
 check("industries present", INDUSTRIES.length >= 12, String(INDUSTRIES.length));
 check("volume bands present", VOLUMES.length >= 15, String(VOLUMES.length));
 check("headcount bands present", HEADCOUNT_BANDS.length >= 5, String(HEADCOUNT_BANDS.length));
-check("AHT variants present", AHT_VARIANTS.length === 3, String(AHT_VARIANTS.length));
-check("coverage scenarios present", COVERAGE_SCENARIOS.length === 3, String(COVERAGE_SCENARIOS.length));
+check("AHT variants present", AHT_VARIANTS.length === 5, String(AHT_VARIANTS.length));
+check("coverage scenarios present", COVERAGE_SCENARIOS.length === 5, String(COVERAGE_SCENARIOS.length));
 
 console.log(failures === 0 ? "\nALL CORPUS CHECKS PASSED" : "\n" + failures + " FAILURES");
 if (failures) process.exitCode = 1;

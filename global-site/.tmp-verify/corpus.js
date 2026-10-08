@@ -78,6 +78,38 @@ exports.INDUSTRY_EDITORIAL = {
         en: "Property and rental support is listing- and viewing-led, so demand is lumpy and concentrated rather than evenly distributed.",
         zh: "房产与租赁客服以房源和看房为主，需求呈块状且集中分布，并非均匀发生。",
     },
+    telecom: {
+        en: "Telecom support is billing- and provisioning-heavy with high repeat-contact rates, making it a prime target for self-service deflection.",
+        zh: "电信客服以账单和业务办理为主，重复联系率高，是自助服务分流的首选目标。",
+    },
+    automotive: {
+        en: "Automotive support mixes appointment scheduling, warranty claims and recall coordination — each with different urgency and automation fit.",
+        zh: "汽车客服混合了预约、保修和召回协调，每类问题的紧急度和自动化适配度都不同。",
+    },
+    energy: {
+        en: "Energy and utility support is outage- and billing-driven with strict regulatory SLAs, so escalation paths are rigid and audited.",
+        zh: "能源与公用事业客服以停电和账单为主，受严格监管 SLA 约束，升级路径刚性且需审计。",
+    },
+    government: {
+        en: "Government service desks handle permits, benefits and compliance cases with near-zero tolerance for hallucination, capping safe automation.",
+        zh: "政务客服处理许可、福利和合规案件，对幻觉容忍度近乎零，安全自动化上限极低。",
+    },
+    nonprofit: {
+        en: "Nonprofit support is donor- and volunteer-driven with seasonal spikes, running on lean teams where every hour counts.",
+        zh: "非营利客服以捐赠者和志愿者为主，季节性波动大，团队精简且每小时人力都极其宝贵。",
+    },
+    food_delivery: {
+        en: "Food delivery support is real-time and location-aware: a late order refund must arrive before the customer finishes their meal.",
+        zh: "外卖客服要求实时且感知位置：退款必须在顾客吃完饭前到账。",
+    },
+    rideshare: {
+        en: "Rideshare support splits driver and rider queues with safety-critical escalations that cannot be deflected to bots.",
+        zh: "网约车客服分为司机和乘客两条队列，含安全关键升级路径，不可分流给机器人。",
+    },
+    crypto: {
+        en: "Crypto exchange support carries KYC/AML weight and irreversible transactions, so automation stops where compliance begins.",
+        zh: "加密交易所客服背负 KYC/AML 与不可逆交易，自动化止步于合规起点。",
+    },
 };
 exports.INDUSTRIES = [
     { slug: "ecommerce", channel: "ecommerce", ceiling: 0.62, costPerHour: 34, aht: 7 },
@@ -92,6 +124,14 @@ exports.INDUSTRIES = [
     { slug: "gaming", channel: "ecommerce", ceiling: 0.57, costPerHour: 48, aht: 4 },
     { slug: "media", channel: "ecommerce", ceiling: 0.59, costPerHour: 52, aht: 6 },
     { slug: "realestate", channel: "services", ceiling: 0.46, costPerHour: 56, aht: 9 },
+    { slug: "telecom", channel: "saas", ceiling: 0.48, costPerHour: 55, aht: 10 },
+    { slug: "automotive", channel: "services", ceiling: 0.4, costPerHour: 65, aht: 12 },
+    { slug: "energy", channel: "services", ceiling: 0.35, costPerHour: 75, aht: 15 },
+    { slug: "government", channel: "services", ceiling: 0.25, costPerHour: 50, aht: 12 },
+    { slug: "nonprofit", channel: "ecommerce", ceiling: 0.5, costPerHour: 38, aht: 8 },
+    { slug: "food_delivery", channel: "ecommerce", ceiling: 0.65, costPerHour: 30, aht: 4 },
+    { slug: "rideshare", channel: "marketplace", ceiling: 0.52, costPerHour: 35, aht: 5 },
+    { slug: "crypto", channel: "saas", ceiling: 0.4, costPerHour: 80, aht: 10 },
 ];
 /** Monthly ticket volumes on a roughly geometric ladder. */
 exports.VOLUMES = [
@@ -104,9 +144,11 @@ exports.VOLUMES = [
  * because it changes headcount, not just a label.
  */
 exports.AHT_VARIANTS = [
+    { slug: "very_fast", factor: 0.5, en: "very fast", zh: "极快" },
     { slug: "fast", factor: 0.7, en: "fast", zh: "偏快" },
     { slug: "typical", factor: 1.0, en: "typical", zh: "典型" },
     { slug: "slow", factor: 1.4, en: "slow", zh: "偏慢" },
+    { slug: "very_slow", factor: 2.0, en: "very slow", zh: "极慢" },
 ];
 /**
  * Coverage scenarios. Asks the question a cautious buyer actually asks: "what if
@@ -114,8 +156,10 @@ exports.AHT_VARIANTS = [
  * different, correct answer to a different question.
  */
 exports.COVERAGE_SCENARIOS = [
+    { slug: "minimal", factor: 0.3, en: "minimal", zh: "最小化" },
     { slug: "conservative", factor: 0.5, en: "conservative", zh: "保守" },
     { slug: "base", factor: 0.78, en: "base case", zh: "基准" },
+    { slug: "aggressive", factor: 0.9, en: "aggressive", zh: "激进" },
     { slug: "full", factor: 1.0, en: "full potential", zh: "满产" },
 ];
 /** Team-size bands, because "how many people" is the question buyers ask. */
@@ -238,6 +282,14 @@ function industryLabel(slug, en) {
         gaming: ["Gaming", "游戏"],
         media: ["Media & publishing", "媒体与出版"],
         realestate: ["Property & rentals", "房产与租赁"],
+        telecom: ["Telecom", "电信"],
+        automotive: ["Automotive", "汽车"],
+        energy: ["Energy & utilities", "能源与公用事业"],
+        government: ["Government services", "政务服务"],
+        nonprofit: ["Nonprofit", "非营利组织"],
+        food_delivery: ["Food delivery", "外卖配送"],
+        rideshare: ["Rideshare", "网约车"],
+        crypto: ["Crypto exchange", "加密交易所"],
     };
     const hit = map[slug];
     return hit ? (en ? hit[0] : hit[1]) : slug;
