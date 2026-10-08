@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { DEFAULTS, decodeState, encodeState, type Inputs } from "@/lib/model";
+import { paypalConfigured, createOrder } from "@/lib/paypal";
+
+const SITE = "https://shiftless.vercel.app";
 
 /**
  * Order intake.
@@ -11,11 +14,11 @@ import { DEFAULTS, decodeState, encodeState, type Inputs } from "@/lib/model";
  *    price comes from PRICES below. A handler that reads amount from the body
  *    is a handler that sells your product for $0.01.
  *
- * 2. It does not pretend to take payment autonomously. There is no Stripe,
- *    Creem or PayPal credential in this deployment, so a "paymentUrl" here
- *    would be a fabricated redirect to nowhere. The honest flow at this volume
- *    is: record the order, give the buyer instructions, fulfil manually once
- *    funds land. Five sales a month does not need a checkout integration.
+ * 2. It does not pretend to take payment autonomously on every path. The card
+ *    rail goes through PayPal only when PAYPAL_CLIENT_ID/SECRET are present;
+ *    if creation fails, or the credential is absent, it falls back to the
+ *    manual flow — record the order, give transfer instructions, fulfil when
+ *    funds land. A missing credential must never produce a redirect that 500s.
  *
  * 3. It does not store the inputs. The buyer's scenario round-trips through a
  *    signed-looking permalink, not through our database, so the report is
@@ -118,14 +121,38 @@ export async function POST(req: Request) {
     fetch(hook, { method: "POST", body: JSON.stringify(order) }).catch(() => {});
   }
 
+  // Card rail: create the PayPal checkout only when the credential exists and
+  // PayPal actually accepts the order. Every failure path lands on the manual
+  // response below — the order is already logged, so nothing is lost by asking
+  // the buyer to transfer instead.
+  let paymentUrl: string | undefined;
+  if (rail !== "alipay" && paypalConfigured()) {
+    const pay = await createOrder({
+      amount: price.toFixed(2),
+      orderId,
+      description: `Shiftless ${tier} report`,
+      returnUrl: `${SITE}/api/paypal/return?orderId=${orderId}&permalink=${encodeURIComponent(permalink)}`,
+      cancelUrl: `${SITE}/`,
+    });
+    if (pay) {
+      console.log(`[ORDER] paypal created ${orderId} ${pay.id}`);
+      paymentUrl = pay.approveUrl;
+    } else {
+      console.log(`[ORDER] paypal create failed ${orderId} — manual fallback`);
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     orderId,
     priceUsd: price,
     permalink,
-    // No paymentUrl: no payment credential is configured. Saying so plainly is
+    // Absent exactly when no checkout could be created. Saying so plainly is
     // better than redirecting into a checkout that 500s at the worst moment.
-    manual: true,
-    nextStep: `Transfer $${price} with ${orderId} in the remark using the transfer details shown on this page, then send the receipt screenshot to supi24@163.com. No confirmation email is sent automatically.`,
+    manual: !paymentUrl,
+    paymentUrl,
+    nextStep: paymentUrl
+      ? `Complete the payment in the PayPal window; your order reference is ${orderId}.`
+      : `Transfer $${price} with ${orderId} in the remark using the transfer details shown on this page, then send the receipt screenshot to supi24@163.com. No confirmation email is sent automatically.`,
   });
 }

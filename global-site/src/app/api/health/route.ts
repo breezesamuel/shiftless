@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isKvConfigured, isLeadStorageConfigured } from "@/lib/store";
+import { paypalConfigured } from "@/lib/paypal";
 
 /**
  * System health, reportable from outside Vercel.
@@ -44,6 +45,7 @@ export async function GET() {
     indexNowKey: present(process.env.INDEXNOW_KEY),
 
     // Payment path
+    paypalConfigured: paypalConfigured(),
     alipayAppId: present(process.env.ALIPAY_APP_ID),
     alipayPrivateKey: present(process.env.ALIPAY_PRIVATE_KEY),
     alipayPublicKey: present(process.env.ALIPAY_PUBLIC_KEY),

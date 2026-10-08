@@ -190,7 +190,7 @@ export function Upsell() {
         <div className="mt-4 flex gap-2">
           {(
             [
-              ["card", "Card"],
+              ["card", "Card / PayPal"],
               ["alipay", "Alipay / China"],
             ] as const
           ).map(([k, label]) => (
