@@ -1,4 +1,5 @@
 import { kv } from "@vercel/kv";
+import { get as blobGet, list as blobList, put as blobPut } from "@vercel/blob";
 import crypto from "crypto";
 
 export type User = {
@@ -39,6 +40,47 @@ export function isKvConfigured(): boolean {
 function requireKv() {
   if (!isKvConfigured()) throw new StorageNotConfiguredError();
   return kv;
+}
+
+/**
+ * Vercel Blob fallback for lead capture.
+ *
+ * The Upstash integration needs a browser OAuth click, which means lead storage
+ * was one person-shaped step away from being permanently unconfigured — and an
+ * unconfigured store means every captured email is silently dropped. Blob needs
+ * no such step: the token is already in the environment, the store is linked to
+ * the project, and it is created by the same account as the site.
+ *
+ * So Blob is the floor, not the ceiling. KV stays preferred when present because
+ * it has TTLs and an index that make quota and auth cheap. Blob is used when it
+ * is not, because losing a lead is not recoverable and losing a KV round-trip is.
+ */
+export function isBlobConfigured(): boolean {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+/**
+ * True when a lead can be persisted somewhere real. This is deliberately wider
+ * than isKvConfigured(): any one durable sink is enough to keep the funnel
+ * honest, and the health endpoint reports which one is actually carrying it.
+ */
+export function isLeadStorageConfigured(): boolean {
+  return isKvConfigured() || isBlobConfigured();
+}
+
+const LEAD_PREFIX = "leads/";
+
+/** Blob has no TTL, so the retention window is applied on read instead. */
+function leadIsFresh(iso: string | undefined, ttlSeconds: number): boolean {
+  if (!iso) return false;
+  const t = Date.parse(iso);
+  return Number.isFinite(t) && Date.now() - t < ttlSeconds * 1000;
+}
+
+async function readBlob(pathname: string): Promise<string | null> {
+  const res = await blobGet(pathname, { access: "private" });
+  if (!res || res.statusCode === 304 || !res.stream) return null;
+  return new Response(res.stream).text();
 }
 
 export function storageState(): "ready" | "unconfigured" {
@@ -156,42 +198,103 @@ const LEAD_INDEX_KEY = "leads:index";
 const MAX_LEADS_INDEXED = 2000;
 
 /**
- * Best-effort persist. Never throws: a lead that cannot be written is still
- * reported to the visitor as accepted, because a 500 here would make the funnel
- * look broken and would push the visitor into a retry loop that loses them.
+ * Where a lead actually landed.
+ *
+ * This started life as a boolean "stored", which turned out to be worse than
+ * useless: it reported kv:true for a write that had gone to Blob, because the
+ * caller could only see that a record came back. A durability report that
+ * misnames the store is worse than none, since it sends you to debug the wrong
+ * system.
  */
-export async function saveLead(lead: Omit<StoredLead, "id" | "receivedAt">): Promise<StoredLead | null> {
-  if (!isKvConfigured()) return null;
-  const store = kv;
+export type LeadSink = "kv" | "blob" | null;
+
+export async function saveLead(
+  lead: Omit<StoredLead, "id" | "receivedAt">
+): Promise<{ record: StoredLead | null; sink: LeadSink }> {
+  if (!isLeadStorageConfigured()) return { record: null, sink: null };
   const id = crypto
     .createHash("sha256")
     .update(`${lead.email}:${Date.now()}:${Math.random()}`)
     .digest("hex")
     .slice(0, 16);
   const record: StoredLead = { ...lead, id, receivedAt: new Date().toISOString() };
-  try {
-    await store.set(`lead:${id}`, record, { ex: LEAD_TTL_SECONDS });
-    // Append to an enumerable index. An expired element simply disappears from
-    // reads, so the index self-prunes without a sweeper.
-    const index = (await store.get<string[]>(LEAD_INDEX_KEY)) ?? [];
-    index.unshift(id);
-    await store.set(LEAD_INDEX_KEY, index.slice(0, MAX_LEADS_INDEXED), {
-      ex: LEAD_TTL_SECONDS,
-    });
-    return record;
-  } catch {
-    return null;
+
+  if (isKvConfigured()) {
+    try {
+      const store = kv;
+      await store.set(`lead:${id}`, record, { ex: LEAD_TTL_SECONDS });
+      // Append to an enumerable index. An expired element simply disappears from
+      // reads, so the index self-prunes without a sweeper.
+      const index = (await store.get<string[]>(LEAD_INDEX_KEY)) ?? [];
+      index.unshift(id);
+      await store.set(LEAD_INDEX_KEY, index.slice(0, MAX_LEADS_INDEXED), {
+        ex: LEAD_TTL_SECONDS,
+      });
+      return { record, sink: "kv" };
+    } catch {
+      // Fall through to Blob rather than dropping the lead on the floor.
+    }
   }
+
+  if (isBlobConfigured()) {
+    try {
+      await blobPut(`${LEAD_PREFIX}${id}.json`, JSON.stringify(record), {
+        access: "private",
+        addRandomSuffix: false,
+        contentType: "application/json",
+      });
+      return { record, sink: "blob" };
+    } catch {
+      return { record: null, sink: null };
+    }
+  }
+
+  return { record: null, sink: null };
 }
 
 /** Newest first, for export/inspection. Skips ids that have expired. */
 export async function listLeads(limit = 100): Promise<StoredLead[]> {
-  if (!isKvConfigured()) return [];
-  const store = kv;
-  const index = (await store.get<string[]>(LEAD_INDEX_KEY)) ?? [];
-  const slice = index.slice(0, Math.min(Math.max(1, limit), MAX_LEADS_INDEXED));
-  const found = await Promise.all(
-    slice.map((id) => store.get<StoredLead>(`lead:${id}`).catch(() => null))
-  );
-  return found.filter((v): v is StoredLead => v !== null && v !== undefined);
+  const cap = Math.min(Math.max(1, limit), MAX_LEADS_INDEXED);
+
+  if (isKvConfigured()) {
+    try {
+      const index = (await kv.get<string[]>(LEAD_INDEX_KEY)) ?? [];
+      const found = await Promise.all(
+        index
+          .slice(0, cap)
+          .map((id) => kv.get<StoredLead>(`lead:${id}`).catch(() => null))
+      );
+      return found.filter((v): v is StoredLead => v !== null && v !== undefined);
+    } catch {
+      // fall through to Blob
+    }
+  }
+
+  if (isBlobConfigured()) {
+    try {
+      const { blobs } = await blobList({ prefix: LEAD_PREFIX });
+      const newest = blobs
+        .filter((b) => b.pathname.endsWith(".json"))
+        .sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime())
+        .slice(0, cap);
+
+      const records = await Promise.all(
+        newest.map(async (b) => {
+          try {
+            const raw = await readBlob(b.pathname);
+            if (!raw) return null;
+            const rec = JSON.parse(raw) as StoredLead;
+            return leadIsFresh(rec.receivedAt, LEAD_TTL_SECONDS) ? rec : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+      return records.filter((v): v is StoredLead => v !== null);
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
 }

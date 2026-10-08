@@ -84,29 +84,40 @@ export async function POST(req: NextRequest) {
       .map(([k, v]) => `${k}=${v}`)
       .join(" ");
 
-  // Durable sink #1: KV, so the lead is queryable and survives a redeploy.
-  // Best-effort by design — see saveLead(). A visitor who handed us an email
-  // must never see a 500 because the database blinked.
+  // The sinks are independent on purpose. KV is the queryable store, the
+  // webhook is the one that works without any provisioning, and the log is the
+  // fallback for both. Previously a lead was durable only if KV happened to be
+  // configured, which made the entire funnel contingent on one dashboard step
+  // nobody had taken. Now any one sink being live is enough, and the response
+  // says which ones actually took it.
   const saved = await saveLead(lead);
+  const sink = saved.sink;
 
-  // Sink #2: platform log, greppable, never blocked.
-  console.log(line + (saved ? ` id=${saved.id}` : " kv=unavailable"));
-
-  // Sink #3: optional webhook (Zapier/Make/Feishu/n8n) when configured.
+  let webhooked = false;
   const hook = process.env.LEAD_WEBHOOK_URL;
   if (hook) {
     try {
-      await fetch(hook, {
+      const res = await fetch(hook, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(lead),
       });
+      webhooked = res.ok;
+      if (!res.ok) console.log(`[LEAD-WEBHOOK-FAIL] status=${res.status}`);
     } catch (e) {
       console.log(`[LEAD-WEBHOOK-FAIL] ${String(e)}`);
     }
   }
 
-  return NextResponse.json({ ok: true, stored: saved !== null });
+  console.log(
+    line + ` sink=${sink ?? "none"} webhook=${webhooked ? "ok" : "no"}`
+  );
+
+  return NextResponse.json({
+    ok: true,
+    stored: sink !== null || webhooked,
+    sinks: { kv: sink === "kv", blob: sink === "blob", webhook: webhooked },
+  });
 }
 
 export async function GET() {

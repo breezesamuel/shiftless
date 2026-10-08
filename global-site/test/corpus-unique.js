@@ -134,6 +134,40 @@ check("hub page pluralises agent counts",
   !/\{p\.output\.agentsNeeded\} agents/.test(hub),
   "hub still concatenates agentsNeeded with a bare plural");
 
+console.log("Lead durability (leads were silently lost for 14 rounds)");
+
+// The expensive failure here was never "the site was down" — it was "the site
+// returned 200 while every captured email was dropped". So the invariant is
+// about storage configuration, and it is now checkable from outside.
+const store = read("src/lib/store.ts");
+const health = read("src/app/api/health/route.ts");
+const leadRoute = read("src/app/api/lead/route.ts");
+
+check("lead storage counts Blob as durable, not just KV",
+  /isLeadStorageConfigured/.test(store) &&
+    /isKvConfigured\(\) \|\| isBlobConfigured\(\)/.test(store),
+  "isLeadStorageConfigured must accept either sink");
+
+check("saveLead falls through to Blob when KV fails",
+  /isBlobConfigured\(\)/.test(store) &&
+    /access: "private"/.test(store),
+  "Blob put must be wired as the second sink");
+
+// The health endpoint must not claim durability from a single sink.
+check("health reports leadsDurable only when some sink is real",
+  /const leadsDurable = kv \|\| blob \|\| webhook/.test(health),
+  "leadsDurable must union all three sinks");
+
+// Guards against reintroducing a sink that exists but is never wired.
+check("the lead route reports per-sink outcomes",
+  /sinks:/.test(leadRoute) && /webhooked/.test(leadRoute),
+  "route must state which sinks accepted the lead");
+
+// Never let the diagnostics endpoint become a secret-leak vector.
+check("health endpoint reports presence, never values",
+  !/\.env\.[A-Z_]+\]/.test(health) && /Only presence is reported/.test(health),
+  "health must not echo env values");
+
 console.log("Axes covered");
 check("industries present", INDUSTRIES.length >= 12, String(INDUSTRIES.length));
 check("volume bands present", VOLUMES.length >= 15, String(VOLUMES.length));

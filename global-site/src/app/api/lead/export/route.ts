@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listLeads, isKvConfigured } from "@/lib/store";
+import { listLeads, isLeadStorageConfigured } from "@/lib/store";
 
 // Node runtime, not edge: store.ts derives ids with node:crypto (the same
 // primitive auth.ts already uses), and the edge bundle cannot resolve it.
@@ -35,9 +35,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
-  if (!isKvConfigured()) {
+  // Gate on any durable sink, not KV specifically. Blob was added as a fallback
+  // so leads survive without KV, but this route still refused to read them — so
+  // a lead could be durably stored and simultaneously impossible to export.
+  // The point of a fallback store is that it is usable, not merely writable.
+  if (!isLeadStorageConfigured()) {
     return NextResponse.json(
-      { ok: false, error: "KV storage is not configured" },
+      { ok: false, error: "no lead storage configured (need KV, Blob, or a webhook)" },
       { status: 503 }
     );
   }
