@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { DEFAULTS, decodeState, type Inputs } from "@/lib/model";
 import { buildReport } from "@/lib/report";
 import { track } from "@/lib/track";
+import { PaymentDetails } from "@/components/PaymentDetails";
 
 /**
  * Upsell from the free tool.
@@ -31,6 +32,7 @@ export function Upsell() {
   const [email, setEmail] = useState("");
   const [rail, setRail] = useState<"card" | "alipay">("card");
   const [state, setState] = useState<"idle" | "busy" | "done" | "err">("idle");
+  const [orderId, setOrderId] = useState("");
   const [err, setErr] = useState("");
 
   useEffect(() => {
@@ -66,6 +68,7 @@ export function Upsell() {
         window.location.href = j.paymentUrl;
         return;
       }
+      if (j.orderId) setOrderId(j.orderId);
       setState("done");
     } catch {
       setErr("Network error. Try again.");
@@ -226,11 +229,17 @@ export function Upsell() {
         </div>
 
         {state === "done" && (
-          <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            Order recorded. Check your email for payment instructions — if it has
-            not arrived in 10 minutes, check spam, then reply to the order
-            confirmation with your order reference.
-          </p>
+          <div className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            <p className="font-semibold">
+              Order recorded{orderId ? `: ${orderId}` : ""}.
+            </p>
+            <p className="mt-1">
+              Transfer using the details below, put the order reference in the
+              remark, then send the receipt screenshot to the payment address —
+              we confirm within one business day. No email is sent automatically.
+            </p>
+            <PaymentDetails lang="en" orderId={orderId} />
+          </div>
         )}
         {state === "err" && (
           <p className="mt-3 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-800">

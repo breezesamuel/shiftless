@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PaymentDetails } from "./PaymentDetails";
 
 /**
  * GEO audit order form.
@@ -133,6 +134,8 @@ export function GeoOrder() {
           aria-label="网站根地址"
           className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-900"
         />
+
+        <PaymentDetails orderId={state === "done" && result ? result.orderId : undefined} />
 
         <button
           type="button"

@@ -126,6 +126,6 @@ export async function POST(req: Request) {
     // No paymentUrl: no payment credential is configured. Saying so plainly is
     // better than redirecting into a checkout that 500s at the worst moment.
     manual: true,
-    nextStep: `Send $${price} quoting ${orderId} to the payment address on our contact page, then reply to the confirmation email with the order reference.`,
+    nextStep: `Transfer $${price} with ${orderId} in the remark using the transfer details shown on this page, then send the receipt screenshot to supi24@163.com. No confirmation email is sent automatically.`,
   });
 }

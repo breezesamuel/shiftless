@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { SubOrder } from "@/components/SubOrder";
+import { PaymentDetails } from "@/components/PaymentDetails";
 import { paymentChannels, anyChannelLive } from "@/lib/payments";
 import { PLANS, PLAN_ORDER, FREE_TIER_COPY, formatPrice } from "@/lib/pricing";
 
@@ -187,6 +188,7 @@ export default function GeoSubscribePage() {
                       ? "已开通的通道会在付款确认后自动开通订阅。"
                       : "当前在线通道尚未全部开通，付款由我们人工核对到账后开通。"}
                   </p>
+                  <PaymentDetails />
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm leading-relaxed text-slate-600">

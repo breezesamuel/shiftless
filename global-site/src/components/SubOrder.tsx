@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { PaymentDetails } from "@/components/PaymentDetails";
 import { PLANS, PLAN_ORDER, FREE_TIER_COPY, formatPrice } from "@/lib/pricing";
 import type { Currency, PlanId } from "@/lib/pricing";
 import { REWARD_ROWS, REWARD_PROGRAM_NOTE } from "@/lib/referral-copy";
@@ -68,10 +69,13 @@ function PaymentMethodPicker({
 
   if (usable.length === 0) {
     return (
-      <p className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-600">
-        在线支付尚未开通。你可以先提交订单，线下转账并备注订单号，我们人工核对到账后开通。
-        {currency === "usd" && "（美元订单需人工开票，支付宝只结算人民币。）"}
-      </p>
+      <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-600">
+        <p>
+          在线支付尚未开通。你可以先提交订单，线下转账并备注订单号，我们人工核对到账后开通。
+          {currency === "usd" && "（美元订单需人工开票，支付宝只结算人民币。）"}
+        </p>
+        <PaymentDetails lang={currency === "usd" ? "en" : "zh"} />
+      </div>
     );
   }
 
@@ -309,9 +313,10 @@ export function SubOrder({ initialCurrency = "cny" }: { initialCurrency?: Curren
             </p>
             <p className="mt-1">{result.nextStep}</p>
             {!result.onlineCheckoutAvailable && (
-              <p className="mt-2 text-xs text-emerald-700">
-                在线支付通道尚未全部开通。付款由我们人工核对到账后开通，不会自动到账。
-              </p>
+              <div className="mt-2 text-xs text-emerald-700">
+                <p>在线支付通道尚未全部开通。付款由我们人工核对到账后开通，不会自动到账。</p>
+                <PaymentDetails orderId={result.orderId} />
+              </div>
             )}
           </div>
         )}
