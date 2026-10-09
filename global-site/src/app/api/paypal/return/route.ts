@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { captureOrder } from "@/lib/paypal";
+import { sendOwnerAlert } from "@/lib/mail";
 
 /**
  * PayPal return hop.
@@ -67,6 +68,31 @@ export async function GET(req: Request) {
     if (hook) {
       fetch(hook, { method: "POST", body: JSON.stringify(record) }).catch(() => {});
     }
+
+    // This is the money moment: money is confirmed captured. The operator needs
+    // to deliver, so a capture with no notification is the most expensive
+    // silent failure there is. Best-effort — the record is already logged.
+    let alerted = false;
+    try {
+      const r = await sendOwnerAlert(
+        `[Shiftless] 已收款 ${orderId} — ${result.amount} ${result.currency}`,
+        [
+          "PayPal 已确认收款，需要交付。",
+          "",
+          `orderId: ${orderId}`,
+          `paypalOrderId: ${result.paypalOrderId}`,
+          `amount: ${result.amount}`,
+          `currency: ${result.currency}`,
+          `payer: ${result.payerEmail}`,
+          `status: ${result.status}`,
+        ].join("\n")
+      );
+      alerted = r.sent;
+      if (!r.sent) console.log(`[PAYMENT-ALERT-FAIL] ${r.reason}`);
+    } catch (e) {
+      console.log(`[PAYMENT-ALERT-FAIL] ${String(e)}`);
+    }
+    console.log(`[PAYMENT] captured ${orderId} alert=${alerted ? "ok" : "no"}`);
 
     return page(
       "Payment confirmed",

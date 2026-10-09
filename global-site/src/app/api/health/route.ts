@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isKvConfigured, isLeadStorageConfigured } from "@/lib/store";
 import { paypalConfigured } from "@/lib/paypal";
+import { ownerAlertConfigured } from "@/lib/mail";
 
 /**
  * System health, reportable from outside Vercel.
@@ -56,6 +57,9 @@ export async function GET() {
 
     // Notification
     smtpConfigured: present(process.env.SMTP_HOST) && present(process.env.SMTP_USER),
+    // Alerts need a real mailbox address as well as a transport; this is the
+    // difference between "sending is possible" and "a new lead reaches a human".
+    ownerAlertConfigured: ownerAlertConfigured(),
 
     googleSiteVerification: present(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION),
   };
@@ -89,6 +93,12 @@ export async function GET() {
   }
   if (!checks.smtpConfigured) {
     problems.push("No mail provider: magic-link login cannot deliver a message.");
+  }
+  if (!checks.ownerAlertConfigured) {
+    problems.push(
+      "No owner alert mailbox: captured leads and orders are stored, but nobody is " +
+        "emailed when they arrive — set OWNER_ALERT_EMAIL or rely on SMTP_USER/EMAIL_FROM."
+    );
   }
   if (!checks.indexNowKey) {
     problems.push(

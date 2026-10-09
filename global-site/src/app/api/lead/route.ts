@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { saveLead } from "@/lib/store";
+import { ownerAlertAddress, sendOwnerAlert } from "@/lib/mail";
 
 // Node runtime, not edge: saveLead() lives in store.ts alongside the quota and
 // order helpers, and that module derives ids with node:crypto — which the edge
@@ -109,14 +110,41 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Owner alert. Before this existed a lead was durable but invisible: it sat
+  // in a store until someone remembered to open the export, which for a
+  // human-scale funnel means leads were effectively lost. Best-effort only —
+  // the lead is already saved above, so a mail failure never fails the call.
+  let alerted = false;
+  try {
+    const to = ownerAlertAddress();
+    const r = await sendOwnerAlert(
+      `[Shiftless] 新线索 ${lead.email}`,
+      [
+        "计算器提交了一个新线索。",
+        "",
+        ...Object.entries(lead)
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => `${k}: ${v}`),
+        "",
+        `落盘位置: ${sink ?? "none"}`,
+        `通知对象: ${to ?? "(未配置)"}`,
+      ].join("\n")
+    );
+    alerted = r.sent;
+    if (!r.sent) console.log(`[LEAD-ALERT-FAIL] ${r.reason}`);
+  } catch (e) {
+    console.log(`[LEAD-ALERT-FAIL] ${String(e)}`);
+  }
+
   console.log(
-    line + ` sink=${sink ?? "none"} webhook=${webhooked ? "ok" : "no"}`
+    line + ` sink=${sink ?? "none"} webhook=${webhooked ? "ok" : "no"} alert=${alerted ? "ok" : "no"}`
   );
 
   return NextResponse.json({
     ok: true,
     stored: sink !== null || webhooked,
     sinks: { kv: sink === "kv", blob: sink === "blob", webhook: webhooked },
+    alerted,
   });
 }
 

@@ -12,6 +12,7 @@ import {
 import type { PaymentMethod } from "@/lib/referral";
 import { buildPagePay, AlipayNotConfiguredError } from "@/lib/alipay";
 import { saveOrder, ordersAvailable } from "@/lib/orders";
+import { sendOwnerAlert } from "@/lib/mail";
 
 /**
  * Subscription order intake.
@@ -222,6 +223,34 @@ export async function POST(req: Request) {
 
   const online = anyChannelLive();
 
+  // Operator alert for the manual path. Online paths notify on payment
+  // confirmation instead; here the owner is the one who has to notice the
+  // transfer and activate the plan, so intent alone is worth an email.
+  let alerted = false;
+  try {
+    const r = await sendOwnerAlert(
+      `[Shiftless] 新订阅订单 ${orderId} — ${price} ${currency.toUpperCase()}`,
+      [
+        "订阅表单提交了一个新订单（人工通道）。",
+        "",
+        `orderId: ${orderId}`,
+        `email: ${email}`,
+        `siteUrl: ${siteUrl}`,
+        `plan: ${plan.id}`,
+        `months: ${plan.months}`,
+        `currency: ${currency}`,
+        `price: ${price}`,
+        `paymentMethod: ${method ?? "manual"}`,
+        "",
+        "到账后需人工确认并开通。",
+      ].join("\n")
+    );
+    alerted = r.sent;
+    if (!r.sent) console.log(`[SUB-ORDER-ALERT-FAIL] ${r.reason}`);
+  } catch (e) {
+    console.log(`[SUB-ORDER-ALERT-FAIL] ${String(e)}`);
+  }
+
   return NextResponse.json({
     ok: true,
     orderId,
@@ -236,6 +265,7 @@ export async function POST(req: Request) {
     siteUrl,
     manual: method === null,
     onlineCheckoutAvailable: online,
+    alerted,
     freeUsesIncluded: FREE_USES,
     channels: paymentChannels().map((c) => ({
       id: c.id,

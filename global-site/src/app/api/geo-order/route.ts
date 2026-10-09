@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { sendOwnerAlert } from "@/lib/mail";
 
 const PRICES: Record<string, number> = {
   report: 1999,
@@ -79,12 +80,38 @@ export async function POST(req: Request) {
   // lead has already been captured. Subscription activation happens
   // after payment is confirmed, by adding the site to
   // geo/subscriptions/subscribers.json and deploying.
+  // Same reasoning as the other order routes: the order is recorded, but the
+  // only person who can fulfil it needs to be told. Best-effort — a mail
+  // failure must not turn a captured GEO order into an error page.
+  let alerted = false;
+  try {
+    const r = await sendOwnerAlert(
+      `[Shiftless] 新 GEO 订单 ${orderId} — ¥${priceCny} ${tier}`,
+      [
+        "GEO 审计提交了一个新订单。",
+        "",
+        `orderId: ${orderId}`,
+        `email: ${email}`,
+        `tier: ${tier}`,
+        `priceCny: ${priceCny}`,
+        `siteUrl: ${siteUrl}`,
+        "",
+        "到账后需人工确认并交付。",
+      ].join("\n")
+    );
+    alerted = r.sent;
+    if (!r.sent) console.log(`[GEO-ORDER-ALERT-FAIL] ${r.reason}`);
+  } catch (e) {
+    console.log(`[GEO-ORDER-ALERT-FAIL] ${String(e)}`);
+  }
+
   return NextResponse.json({
     ok: true,
     orderId,
     priceCny,
     siteUrl,
     manual: true,
+    alerted,
     nextStep:
       tier === "subscription"
         ? `订单已记录（${orderId}）。请按下方支付方式转账 ¥${priceCny}，并备注订单号。到账后我们人工确认并把站点加入季度复审名单，基线在下次发布时生效。`

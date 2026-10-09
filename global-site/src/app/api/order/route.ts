@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { DEFAULTS, decodeState, encodeState, type Inputs } from "@/lib/model";
 import { paypalConfigured, createOrder } from "@/lib/paypal";
+import { sendOwnerAlert } from "@/lib/mail";
 
 const SITE = "https://shiftless.vercel.app";
 
@@ -142,6 +143,37 @@ export async function POST(req: Request) {
     }
   }
 
+  // Operator alert. An order nobody is told about is an order that never
+  // converts — the buyer transferred or was about to, and the only person who
+  // can fulfil it hears nothing. Fired after the PayPal attempt so the alert
+  // states which rail the buyer actually got. Best-effort: the order is already
+  // logged and webhooked above, so a mail failure never fails the checkout.
+  let alerted = false;
+  try {
+    const r = await sendOwnerAlert(
+      `[Shiftless] 新订单 ${orderId} — $${price} ${tier}`,
+      [
+        "计算器提交了一个新订单。",
+        "",
+        `orderId: ${orderId}`,
+        `email: ${email}`,
+        `tier: ${tier}`,
+        `priceUsd: ${price}`,
+        `rail: ${rail}`,
+        `channel: ${inputs.channel}`,
+        `monthlyTickets: ${inputs.monthlyTickets}`,
+        `ahtMinutes: ${inputs.ahtMinutes}`,
+        `checkout: ${paymentUrl ? "PayPal checkout created" : "manual transfer"}`,
+        "",
+        `报告链接: ${permalink}`,
+      ].join("\n")
+    );
+    alerted = r.sent;
+    if (!r.sent) console.log(`[ORDER-ALERT-FAIL] ${r.reason}`);
+  } catch (e) {
+    console.log(`[ORDER-ALERT-FAIL] ${String(e)}`);
+  }
+
   return NextResponse.json({
     ok: true,
     orderId,
@@ -151,6 +183,7 @@ export async function POST(req: Request) {
     // better than redirecting into a checkout that 500s at the worst moment.
     manual: !paymentUrl,
     paymentUrl,
+    alerted,
     nextStep: paymentUrl
       ? `Complete the payment in the PayPal window; your order reference is ${orderId}.`
       : `Transfer $${price} with ${orderId} in the remark using the transfer details shown on this page, then send the receipt screenshot to supi24@163.com. No confirmation email is sent automatically.`,
