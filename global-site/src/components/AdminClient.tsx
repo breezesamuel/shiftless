@@ -106,6 +106,45 @@ export function AdminClient({ token }: { token: string }) {
         ))}
       </Section>
 
+      <Section title="Failed missions (need attention)">
+        {data.missions.filter((m) => m.status === "failed").length === 0 && (
+          <Empty text="No failed missions." />
+        )}
+        {data.missions
+          .filter((m) => m.status === "failed")
+          .map((m) => (
+            <div key={String(m.id)} className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-medium text-rose-900">{String(m.subject)}</span>
+                <span className="text-xs text-rose-600">
+                  {String(m.kind)} → {String(m.to)} · failed
+                </span>
+              </div>
+              <pre className="mt-2 whitespace-pre-wrap rounded bg-white p-2 text-xs text-slate-600">
+                {String(m.body)}
+              </pre>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  disabled={busy === m.id + "retry"}
+                  onClick={() => act("retry", String(m.id))}
+                  className="rounded bg-sky-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-700 disabled:opacity-50"
+                >
+                  Retry send
+                </button>
+                <button
+                  type="button"
+                  disabled={busy === m.id + "reject"}
+                  onClick={() => act("reject", String(m.id))}
+                  className="rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          ))}
+      </Section>
+
       <Section title="Sent missions">
         {sent.length === 0 && <Empty text="No sent missions yet." />}
         {sent.map((m) => (
@@ -150,28 +189,52 @@ export function AdminClient({ token }: { token: string }) {
                 {String(r.referrer)} → {String(r.invitee)}
               </span>
               <span className="text-xs text-slate-400">
-                {String(r.orderId)} · {String(r.amount || "")} {String(r.currency || "")} · {String(r.source)}
+                {String(r.orderId)} · {String(r.amount || "")} {String(r.currency || "")} ·{" "}
+                {String(r.source)}
+                {r.paidOutAt ? ` · PAID OUT ${String(r.paidOutAt).slice(0, 10)}` : ""}
               </span>
             </div>
+            {!r.paidOutAt && (
+              <div className="mt-2">
+                <button
+                  type="button"
+                  disabled={busy === r.id + "payout"}
+                  onClick={() => act("payout-referral", String(r.id))}
+                  className="rounded bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  Mark paid out
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </Section>
 
       <Section title="Orders">
         {data.orders.length === 0 && <Empty text="No orders recorded yet." />}
-        {data.orders.map((o) => (
-          <div key={String(o.orderId)} className="rounded-lg border border-slate-200 p-3 text-sm">
-            <div className="flex flex-wrap justify-between gap-2">
-              <span className="font-medium text-slate-900">
-                {String(o.orderId)} · {String(o.tier)} · ${String(o.priceUsd)}
-              </span>
-              <span className="text-xs text-slate-400">
-                {String(o.email)} · {String(o.paymentState)}
-                {o.ref ? ` · ref ${String(o.ref)}` : ""}
-              </span>
+        {data.orders.map((o) => {
+          const ps = String(o.paymentState);
+          const badge =
+            ps === "captured"
+              ? "rounded bg-emerald-100 text-emerald-800"
+              : ps === "checkout-created"
+              ? "rounded bg-sky-100 text-sky-800"
+              : "rounded bg-amber-100 text-amber-800";
+          return (
+            <div key={String(o.orderId)} className="rounded-lg border border-slate-200 p-3 text-sm">
+              <div className="flex flex-wrap justify-between gap-2">
+                <span className="font-medium text-slate-900">
+                  {String(o.orderId)} · {String(o.tier)} · ${String(o.priceUsd)}
+                </span>
+                <span className="text-xs text-slate-400 flex items-center gap-2">
+                  <span className={`px-1.5 py-0.5 text-[10px] font-medium ${badge}`}>{ps}</span>
+                  {String(o.email)}
+                  {o.ref ? ` · ref ${String(o.ref)}` : ""}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </Section>
 
       <Section title="Leads">

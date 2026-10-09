@@ -426,6 +426,9 @@ export type ReferralRecord = {
   currency?: string;
   confirmedAt: string;
   source: "paypal-capture" | "manual";
+  /** Payout tracking: has the operator settled this referral's reward? */
+  paidOutAt?: string;
+  paidOutBy?: string;
 };
 
 /**
@@ -448,6 +451,30 @@ export async function saveReferral(
 
 export async function listReferrals(limit = 500): Promise<ReferralRecord[]> {
   return listRows<ReferralRecord>("referrals/", limit);
+}
+
+/**
+ * Mark a referral as paid out by the operator. Idempotent: if already paid,
+ * returns true without changing the record.
+ */
+export async function payoutReferral(
+  id: string,
+  operatorEmail: string
+): Promise<boolean> {
+  if (!isBlobConfigured()) return false;
+  try {
+    const raw = await readBlob(`referrals/${id}.json`);
+    if (!raw) return false;
+    const rec = JSON.parse(raw) as ReferralRecord;
+    if (rec.paidOutAt) return true; // already paid
+    return putRow("referrals/", id, {
+      ...rec,
+      paidOutAt: new Date().toISOString(),
+      paidOutBy: operatorEmail,
+    });
+  } catch {
+    return false;
+  }
 }
 
 // --- Agent events & missions --------------------------------------------------

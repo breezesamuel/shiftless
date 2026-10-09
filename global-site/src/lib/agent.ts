@@ -216,6 +216,25 @@ export async function approveMission(id: string): Promise<{ ok: boolean; reason?
   }
 }
 
+export async function retryMission(id: string): Promise<{ ok: boolean; reason?: string }> {
+  try {
+    const missions = await listMissions(2000);
+    const m = missions.find((x) => x.id === id);
+    if (!m) return { ok: false, reason: "not_found" };
+    if (m.status !== "failed") return { ok: false, reason: `not_failed_but_${m.status}` };
+    const r = await sendMail(m.to, m.subject, m.body);
+    if (!r.sent) {
+      await updateMission(id, { status: "failed" });
+      return { ok: false, reason: r.reason };
+    }
+    await updateMission(id, { status: "sent", sentAt: new Date().toISOString() });
+    await bumpKnowledge(m.kind, "sent");
+    return { ok: true };
+  } catch {
+    return { ok: false, reason: "error" };
+  }
+}
+
 export async function rejectMission(id: string): Promise<boolean> {
   try {
     const missions = await listMissions(2000);

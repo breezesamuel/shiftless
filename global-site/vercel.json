@@ -1,14 +1,19 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "path": "/api/quarterly-recheck",
-      "schedule": "0 18 * * *"
+      "path": "/api/cron/refresh",
+      "schedule": "0 3 * * *"
     }
   ],
-  "functions": {
-    "src/app/api/quarterly-recheck/route.ts": {
-      "maxDuration": 60,
-      "memory": 1024
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
     }
-  }
+  ]
 }

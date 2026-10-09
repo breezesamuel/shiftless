@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isKvConfigured, isLeadStorageConfigured } from "@/lib/store";
+import { isKvConfigured, isBlobConfigured, isLeadStorageConfigured } from "@/lib/store";
 import { paypalConfigured } from "@/lib/paypal";
 import { ownerAlertConfigured } from "@/lib/mail";
 
@@ -29,8 +29,28 @@ function present(v: string | undefined): boolean {
 }
 
 export async function GET() {
+  // Probe Blob write/read to distinguish "configured" from "actually working"
+  let blobWriteOk = false;
+  let blobReadOk = false;
+  if (isBlobConfigured()) {
+    try {
+      const { put } = await import("@vercel/blob");
+      const testKey = `health/${Date.now()}.json`;
+      await put(testKey, JSON.stringify({ ok: true }), { access: "private", addRandomSuffix: false });
+      blobWriteOk = true;
+      const { get } = await import("@vercel/blob");
+      const res = await get(testKey, { access: "private" });
+      if (res && res.stream) {
+        const text = await new Response(res.stream).text();
+        blobReadOk = text.includes("ok");
+      }
+    } catch {
+      // leave as false
+    }
+  }
+
   const kv = isKvConfigured();
-  const blob = isLeadStorageConfigured() && !kv;
+  const blob = isBlobConfigured() && !kv;
   const webhook = present(process.env.LEAD_WEBHOOK_URL);
 
   // The question that decides whether the funnel is worth anything at all.
@@ -40,6 +60,8 @@ export async function GET() {
     // Revenue path
     kvConfigured: kv,
     blobConfigured: blob,
+    blobWriteOk,
+    blobReadOk,
     leadWebhookConfigured: webhook,
     leadsDurable,
     leadExportToken: present(process.env.LEAD_EXPORT_TOKEN),
@@ -81,6 +103,9 @@ export async function GET() {
       "DEGRADED: leads reach the webhook but not a queryable store, so quota tracking, " +
         "magic-link auth and order persistence are all inert."
     );
+  }
+  if (checks.blobConfigured && (!blobWriteOk || !blobReadOk)) {
+    problems.push("Blob storage configured but write/read probe failed — leads/orders/referrals may not persist.");
   }
   const onlinePay = checks.paypalConfigured || (checks.alipayAppId && checks.alipayPrivateKey);
   if (!onlinePay) {

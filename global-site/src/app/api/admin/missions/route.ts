@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { approveMission, rejectMission, recordOutcome } from "@/lib/agent";
+import { approveMission, rejectMission, recordOutcome, retryMission } from "@/lib/agent";
+import { payoutReferral } from "@/lib/store";
 import { adminTokenOk } from "@/lib/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Mission actions for the operator cockpit: approve (send the drafted mail),
- * reject, or record an outcome (replied / no-reply / bounce) which feeds the
- * template-learning counters.
+ * Admin actions: mission approve/reject/outcome + referral payout.
+ * Token-guarded by AGENT_ADMIN_TOKEN / LEAD_EXPORT_TOKEN.
  */
 export async function POST(req: NextRequest) {
   if (!adminTokenOk(req.nextUrl.searchParams.get("token"))) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
-  let body: { action?: string; id?: string; outcome?: string };
+  let body: { action?: string; id?: string; outcome?: string; operatorEmail?: string };
   try {
     body = await req.json();
   } catch {
@@ -36,6 +36,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "bad outcome" }, { status: 400 });
     }
     return NextResponse.json({ ok: await recordOutcome(id, o) });
+  }
+  if (body.action === "payout-referral") {
+    const operatorEmail = String(body.operatorEmail || "").trim();
+    if (!operatorEmail.includes("@")) {
+      return NextResponse.json({ ok: false, error: "operatorEmail required" }, { status: 400 });
+    }
+    return NextResponse.json({ ok: await payoutReferral(id, operatorEmail) });
+  }
+  if (body.action === "retry") {
+    const r = await retryMission(id);
+    return NextResponse.json(r);
   }
   return NextResponse.json({ ok: false, error: "unknown action" }, { status: 400 });
 }
