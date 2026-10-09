@@ -17,6 +17,9 @@ core/
 bounty-hooks/
 outbox/
 
+# Safety snapshots taken before retiring duplicate Vercel projects
+_vercel_archive/
+
 # Vercel
 .vercel
 .vercel/output
