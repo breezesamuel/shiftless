@@ -50,7 +50,7 @@ const corpusSrc = readSource("src/lib/corpus.ts");
 
 check("corpus CTA reads the incoming ?ref= and forwards it to /api/lead", () => {
   assert.ok(cta.includes('get("ref")'), "referrer not read from URL");
-  assert.ok(cta.includes("...payload, email, ref, source"), "ref not sent with the lead");
+  assert.ok(cta.includes("ref, lang, source"), "ref and lang not sent with the lead");
 });
 
 check("corpus CTA success state offers a referral share link with the submitter's email", () => {

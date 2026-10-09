@@ -127,6 +127,37 @@ export async function sendOwnerAlert(
   }
 }
 
+/**
+ * General outbound mail (customer-facing comms from the agent engine).
+ *
+ * Same contract as sendOwnerAlert: never throws, bounded timeouts, SMTP
+ * failure is a result not an exception. The caller has already persisted the
+ * event that triggered the mail, so a send failure must never fail the
+ * request that produced it.
+ */
+export async function sendMail(
+  to: string,
+  subject: string,
+  body: string
+): Promise<SendResult> {
+  if (!smtpConfigured()) return { sent: false, reason: "smtp_not_configured" };
+  const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
+  try {
+    await buildTransport().sendMail({
+      from,
+      to,
+      subject,
+      text: body,
+      html:
+        `<pre style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;` +
+        `font-size:13px;white-space:pre-wrap;line-height:1.5">${escapeHtml(body)}</pre>`,
+    });
+    return { sent: true, via: `smtp:${process.env.SMTP_HOST}` };
+  } catch {
+    return { sent: false, reason: "send_failed" };
+  }
+}
+
 export async function sendMagicLink(email: string, url: string): Promise<SendResult> {
   if (!smtpConfigured()) {
     return {

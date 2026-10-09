@@ -3,6 +3,8 @@ import { randomUUID } from "crypto";
 import { DEFAULTS, decodeState, encodeState, type Inputs } from "@/lib/model";
 import { paypalConfigured, createOrder } from "@/lib/paypal";
 import { sendOwnerAlert } from "@/lib/mail";
+import { saveOrder } from "@/lib/store";
+import { emit } from "@/lib/agent";
 
 const SITE = "https://shiftless.vercel.app";
 
@@ -152,6 +154,24 @@ export async function POST(req: Request) {
       console.log(`[ORDER] paypal create failed ${orderId} — manual fallback`);
     }
   }
+
+  // Persist the order so the operator can query it (admin table, exports).
+  // Fire-and-forget: the order is already logged and alerted above.
+  void saveOrder({
+    orderId,
+    email,
+    tier,
+    priceUsd: price,
+    rail,
+    channel: inputs.channel,
+    monthlyTickets: inputs.monthlyTickets,
+    ahtMinutes: inputs.ahtMinutes,
+    ref,
+    permalink,
+    ts: order.ts,
+    paymentState: paymentUrl ? "checkout-created" : "manual",
+  });
+  void emit("order", { ...order, lang: "en" });
 
   // Operator alert. An order nobody is told about is an order that never
   // converts — the buyer transferred or was about to, and the only person who

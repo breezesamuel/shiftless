@@ -305,3 +305,234 @@ export async function listLeads(limit = 100): Promise<StoredLead[]> {
 
   return [];
 }
+
+// ---------------------------------------------------------------------------
+// Generic Blob row store.
+//
+// Every business record (orders, referrals, agent events, agent missions) is
+// one JSON object per file under a prefix. Append-only files avoid the
+// read-modify-write race that a single state file would have under concurrent
+// events; the only read-modify-write left is updateOrder (one order, one
+// writer in practice) and the agent knowledge file (rare, human-scale).
+// ---------------------------------------------------------------------------
+
+async function putRow(dir: string, id: string, rec: unknown): Promise<boolean> {
+  if (!isBlobConfigured()) return false;
+  try {
+    await blobPut(`${dir}${id}.json`, JSON.stringify(rec), {
+      access: "private",
+      addRandomSuffix: false,
+      contentType: "application/json",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function listRows<T>(
+  dir: string,
+  cap = 500,
+  fresh?: (r: T) => boolean
+): Promise<T[]> {
+  if (!isBlobConfigured()) return [];
+  try {
+    const { blobs } = await blobList({ prefix: dir });
+    const newest = blobs
+      .filter((b) => b.pathname.endsWith(".json"))
+      .sort((a, b) => b.uploadedAt.getTime() - b.uploadedAt.getTime())
+      .slice(0, Math.min(Math.max(1, cap), 2000));
+    const records = await Promise.all(
+      newest.map(async (b) => {
+        try {
+          const raw = await readBlob(b.pathname);
+          if (!raw) return null;
+          const rec = JSON.parse(raw) as T;
+          return fresh && !fresh(rec) ? null : rec;
+        } catch {
+          return null;
+        }
+      })
+    );
+    return records.filter((v) => v !== null) as T[];
+  } catch {
+    return [];
+  }
+}
+
+// --- Orders -----------------------------------------------------------------
+
+export type OrderRecord = {
+  orderId: string;
+  email: string;
+  tier: string;
+  priceUsd: number;
+  rail: string;
+  channel?: string;
+  monthlyTickets?: number;
+  ahtMinutes?: number;
+  ref?: string;
+  permalink?: string;
+  ts: string;
+  paymentState: "checkout-created" | "manual" | "captured";
+  paypalOrderId?: string;
+  amount?: string;
+  currency?: string;
+  payer?: string | null;
+};
+
+export async function saveOrder(order: OrderRecord): Promise<boolean> {
+  return putRow("orders/", order.orderId, order);
+}
+
+export async function listOrders(limit = 100): Promise<OrderRecord[]> {
+  return listRows<OrderRecord>("orders/", limit);
+}
+
+export async function getOrder(orderId: string): Promise<OrderRecord | null> {
+  if (!isBlobConfigured()) return null;
+  try {
+    const raw = await readBlob(`orders/${orderId}.json`);
+    return raw ? (JSON.parse(raw) as OrderRecord) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateOrder(
+  orderId: string,
+  patch: Partial<OrderRecord>
+): Promise<boolean> {
+  if (!isBlobConfigured()) return false;
+  try {
+    const raw = await readBlob(`orders/${orderId}.json`);
+    if (!raw) return false;
+    const rec = JSON.parse(raw) as OrderRecord;
+    return putRow("orders/", orderId, { ...rec, ...patch });
+  } catch {
+    return false;
+  }
+}
+
+// --- Referral ledger ---------------------------------------------------------
+
+export type ReferralRecord = {
+  id: string;
+  referrer: string;
+  invitee: string;
+  orderId: string;
+  tier?: string;
+  amount?: string;
+  currency?: string;
+  confirmedAt: string;
+  source: "paypal-capture" | "manual";
+};
+
+/**
+ * Record a confirmed referral. Dedupes on orderId: a replayed capture or a
+ * double-fired hook must not create two ledger rows for one payment.
+ */
+export async function saveReferral(
+  rec: Omit<ReferralRecord, "id">
+): Promise<boolean> {
+  if (!isBlobConfigured()) return false;
+  const existing = await listReferrals(2000);
+  if (existing.some((r) => r.orderId === rec.orderId)) return false;
+  const id = crypto
+    .createHash("sha256")
+    .update(`${rec.orderId}:${rec.referrer}:${rec.confirmedAt}`)
+    .digest("hex")
+    .slice(0, 16);
+  return putRow("referrals/", id, { ...rec, id });
+}
+
+export async function listReferrals(limit = 500): Promise<ReferralRecord[]> {
+  return listRows<ReferralRecord>("referrals/", limit);
+}
+
+// --- Agent events & missions --------------------------------------------------
+
+export type AgentEvent = {
+  id: string;
+  kind: string;
+  ts: string;
+  data: Record<string, unknown>;
+};
+
+export async function recordAgentEvent(
+  ev: Omit<AgentEvent, "id" | "ts">
+): Promise<boolean> {
+  const id = crypto
+    .createHash("sha256")
+    .update(`${ev.kind}:${Date.now()}:${Math.random()}`)
+    .digest("hex")
+    .slice(0, 16);
+  return putRow("agent/events/", id, {
+    ...ev,
+    id,
+    ts: new Date().toISOString(),
+  });
+}
+
+export async function listAgentEvents(limit = 100): Promise<AgentEvent[]> {
+  return listRows<AgentEvent>("agent/events/", limit);
+}
+
+export type AgentMission = {
+  id: string;
+  kind: string;
+  status: "pending" | "sent" | "rejected" | "failed";
+  to: string;
+  subject: string;
+  body: string;
+  eventId?: string;
+  context: Record<string, unknown>;
+  createdAt: string;
+  sentAt?: string;
+  outcome?: string;
+};
+
+export async function saveMission(m: AgentMission): Promise<boolean> {
+  return putRow("agent/missions/", m.id, m);
+}
+
+export async function listMissions(limit = 200): Promise<AgentMission[]> {
+  return listRows<AgentMission>("agent/missions/", limit);
+}
+
+export async function updateMission(
+  id: string,
+  patch: Partial<AgentMission>
+): Promise<boolean> {
+  if (!isBlobConfigured()) return false;
+  try {
+    const raw = await readBlob(`agent/missions/${id}.json`);
+    if (!raw) return false;
+    const rec = JSON.parse(raw) as AgentMission;
+    return putRow("agent/missions/", id, { ...rec, ...patch });
+  } catch {
+    return false;
+  }
+}
+
+// --- Agent knowledge (self-learning counters) --------------------------------
+
+export type AgentKnowledge = {
+  templates: Record<string, { drafted: number; sent: number; replied: number; failed: number }>;
+  updatedAt: string;
+};
+
+export async function readAgentKnowledge(): Promise<AgentKnowledge> {
+  if (!isBlobConfigured()) return { templates: {}, updatedAt: new Date().toISOString() };
+  try {
+    const raw = await readBlob("agent/knowledge.json");
+    if (!raw) return { templates: {}, updatedAt: new Date().toISOString() };
+    return JSON.parse(raw) as AgentKnowledge;
+  } catch {
+    return { templates: {}, updatedAt: new Date().toISOString() };
+  }
+}
+
+export async function writeAgentKnowledge(k: AgentKnowledge): Promise<boolean> {
+  return putRow("agent/", "knowledge", k);
+}

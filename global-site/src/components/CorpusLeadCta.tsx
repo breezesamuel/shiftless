@@ -50,7 +50,7 @@ export function CorpusLeadCta({
       const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...payload, email, ref, source: "corpus-cta" }),
+        body: JSON.stringify({ ...payload, email, ref, lang, source: "corpus-cta" }),
       });
       setState(res.ok ? "done" : "err");
     } catch {

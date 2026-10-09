@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { captureOrder } from "@/lib/paypal";
 import { sendOwnerAlert } from "@/lib/mail";
+import { getOrder, updateOrder, saveReferral } from "@/lib/store";
+import { emit } from "@/lib/agent";
 
 /**
  * PayPal return hop.
@@ -68,6 +70,40 @@ export async function GET(req: Request) {
       ts: new Date().toISOString(),
     };
     console.log(`[ORDER] ${JSON.stringify(record)}`);
+
+    // Money confirmed: mark the order captured, and if the buyer arrived via a
+    // shared ?ref= link, write the referral ledger row automatically. The
+    // operator only approves the reward payout — the record is already real.
+    void (async () => {
+      await updateOrder(orderId, {
+        paymentState: "captured",
+        paypalOrderId: result.paypalOrderId,
+        amount: result.amount,
+        currency: result.currency,
+        payer: result.payerEmail,
+      });
+      if (ref) {
+        const order = await getOrder(orderId);
+        await saveReferral({
+          referrer: ref,
+          invitee: order?.email || result.payerEmail || orderId,
+          orderId,
+          tier: order?.tier,
+          amount: result.amount,
+          currency: result.currency,
+          confirmedAt: new Date().toISOString(),
+          source: "paypal-capture",
+        });
+      }
+      await emit("payment", {
+        orderId,
+        email: result.payerEmail || orderId,
+        ref: ref || undefined,
+        permalink,
+        amount: result.amount,
+        currency: result.currency,
+      });
+    })();
 
     const hook = process.env.ORDER_WEBHOOK_URL;
     if (hook) {

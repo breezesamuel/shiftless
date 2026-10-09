@@ -17,8 +17,10 @@
  * proxy, the script pins the real IP via Cloudflare DoH to dodge poisoned
  * resolver answers. Override the pinned address with --ip=<addr>.
  *
- * The /api/order throttle is 10/hour/IP, so keep N <= 8 per run (that limit is
- * the point of the test: beyond ~10 an operator would start seeing 429s).
+ * The /api/order throttle is 10/hour/IP *per instance* (in-memory, not shared),
+ * so N=12 usually surfaces 429s when requests land on the same instance; if
+ * every request lands on a different instance the throttle stays invisible —
+ * that leak is documented in the route itself and is a known, accepted limit.
  *
  * Usage: node scripts/stress-paypal.js [baseUrl] [N] [--proxy=url] [--ip=addr]
  *   baseUrl default: https://shiftless.vercel.app
@@ -28,7 +30,7 @@
 const { ProxyAgent, Agent } = require("undici");
 
 const BASE = process.argv[2] || "https://shiftless.vercel.app";
-const N = Math.min(Math.max(1, parseInt(process.argv[3] || "8", 10)), 8);
+const N = Math.min(Math.max(1, parseInt(process.argv[3] || "8", 10)), 16);
 const proxyArg = process.argv.find((a) => a.startsWith("--proxy="));
 const PROXY =
   (proxyArg && proxyArg.slice(8)) ||

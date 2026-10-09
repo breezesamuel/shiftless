@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { saveLead } from "@/lib/store";
 import { ownerAlertAddress, sendOwnerAlert } from "@/lib/mail";
+import { emit } from "@/lib/agent";
 
 // Node runtime, not edge: saveLead() lives in store.ts alongside the quota and
 // order helpers, and that module derives ids with node:crypto — which the edge
@@ -46,6 +47,8 @@ type Lead = {
   scenario?: string;
   /** Referrer email from a shared ?ref= link. Attribution for the programme. */
   ref?: string;
+  /** Language the lead was captured in (en/zh), for bilingual drafts. */
+  lang?: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -93,6 +96,7 @@ export async function POST(req: NextRequest) {
       typeof body.ref === "string" && EMAIL_RE.test(body.ref.trim())
         ? body.ref.trim().toLowerCase().slice(0, 254)
         : undefined,
+    lang: body.lang === "zh" ? "zh" : "en",
   };
 
   const line =
@@ -110,6 +114,10 @@ export async function POST(req: NextRequest) {
   // says which ones actually took it.
   const saved = await saveLead(lead);
   const sink = saved.sink;
+
+  // Autonomous ops: record the event and plan its follow-up mission. The
+  // lead is already saved, so this never affects the response.
+  void emit("lead", lead);
 
   let webhooked = false;
   const hook = process.env.LEAD_WEBHOOK_URL;
