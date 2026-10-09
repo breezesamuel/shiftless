@@ -84,3 +84,7 @@ global-site/tsconfig.tsbuildinfo
 
 .vercel
 .env*
+
+# Local AI-agent skills vault: large binary assets, never part of the site repo
+skills/
+
