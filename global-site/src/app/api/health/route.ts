@@ -84,6 +84,7 @@ export async function GET() {
     ownerAlertConfigured: ownerAlertConfigured(),
 
     googleSiteVerification: present(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION),
+    bingSiteVerification: present(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION),
   };
 
   // What is actually broken, in plain language. Order is severity order.
@@ -135,6 +136,12 @@ export async function GET() {
     problems.push(
       "Google Search Console is not verified: sitemap submission and index-coverage " +
         "data are unavailable."
+    );
+  }
+  if (!checks.bingSiteVerification) {
+    problems.push(
+      "Bing Webmaster is not verified: IndexNow submission is rejected with 403 until " +
+        "the msvalidate.01 meta (or a BingSiteAuth.xml / CNAME) is live."
     );
   }
 
