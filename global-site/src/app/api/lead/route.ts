@@ -40,6 +40,10 @@ type Lead = {
   verdict?: string;
   yearOneRoi?: number;
   source?: string;
+  industry?: string;
+  band?: string;
+  volume?: number;
+  scenario?: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -76,6 +80,10 @@ export async function POST(req: NextRequest) {
     verdict: typeof body.verdict === "string" ? body.verdict.slice(0, 30) : undefined,
     yearOneRoi: num(body.yearOneRoi, 10_000),
     source: typeof body.source === "string" ? body.source.slice(0, 60) : "calculator",
+    industry: typeof body.industry === "string" ? body.industry.slice(0, 40) : undefined,
+    band: typeof body.band === "string" ? body.band.slice(0, 20) : undefined,
+    volume: num(body.volume, 1e9),
+    scenario: typeof body.scenario === "string" ? body.scenario.slice(0, 30) : undefined,
   };
 
   const line =

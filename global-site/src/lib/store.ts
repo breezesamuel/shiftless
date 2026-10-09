@@ -191,6 +191,11 @@ export type StoredLead = {
   verdict?: string;
   yearOneRoi?: number;
   source?: string;
+  /** Corpus page context: which programmatic page the lead converted on. */
+  industry?: string;
+  band?: string;
+  volume?: number;
+  scenario?: string;
 };
 
 const LEAD_TTL_SECONDS = 60 * 60 * 24 * 365; // 1 year

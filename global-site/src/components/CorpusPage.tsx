@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { PageSpec } from "@/lib/corpus";
 import { fmtMoney, shareUrl, STATE_VERSION } from "@/lib/model";
 import { INDUSTRY_EDITORIAL, industryLabel, bandLabel } from "@/lib/corpus";
+import { CorpusLeadCta } from "@/components/CorpusLeadCta";
 
 /**
  * One programmatic page, rendered from real model output.
@@ -172,6 +173,32 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
             sub={en ? "including setup and severance" : "含部署与补偿成本"}
           />
         </dl>
+
+        {/* The pages search engines land on. Same gating as the calculator:
+            never offer a contact form on a page whose honest answer is
+            don't-buy. */}
+        {output.verdict === "strong" || output.verdict === "workable" ? (
+          <CorpusLeadCta
+            lang={lang}
+            payload={{
+              monthlyTickets: inputs.monthlyTickets,
+              ahtMinutes: inputs.ahtMinutes,
+              loadedCostPerHour: inputs.loadedCostPerHour,
+              channel: industry.slug,
+              industry: industry.slug,
+              band: band.slug,
+              volume,
+              scenario: scenario.slug,
+              agentsRange: `${output.agentsRange[0]}-${output.agentsRange[1]}`,
+              monthlyNetEffect: Math.round(output.monthlyNetEffect),
+              paybackMonths: Number.isFinite(output.paybackMonths)
+                ? Number(output.paybackMonths.toFixed(1))
+                : null,
+              yearOneRoi: Number(output.yearOneRoi.toFixed(2)),
+              verdict: output.verdict,
+            }}
+          />
+        ) : null}
 
         <div className="mt-8 rounded-lg border border-slate-200 bg-white p-6">
           <h2 className="font-semibold text-slate-900">
