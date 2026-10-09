@@ -1,8 +1,9 @@
 import Link from "next/link";
 import type { PageSpec } from "@/lib/corpus";
 import { fmtMoney, shareUrl, STATE_VERSION } from "@/lib/model";
-import { INDUSTRY_EDITORIAL, industryLabel, bandLabel } from "@/lib/corpus";
+import { INDUSTRY_EDITORIAL, industryLabel, bandLabel, relatedPages } from "@/lib/corpus";
 import { CorpusLeadCta } from "@/components/CorpusLeadCta";
+import { RefLink } from "@/components/RefLink";
 
 /**
  * One programmatic page, rendered from real model output.
@@ -79,6 +80,19 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
   // their own numbers rather than only reading ours.
   const permalink = shareUrl(inputs, BASE);
 
+  // The internal-link mesh: nearest sibling pages, so a crawler that lands
+  // anywhere can walk the whole corpus instead of hitting one dead end.
+  const related = relatedPages(spec, 5);
+  const relatedHref = (p: PageSpec) =>
+    en
+      ? `/roi/${p.industry.slug}/${p.band.slug}/${p.volume}/${p.aht.slug}/${p.scenario.slug}`
+      : `/zh/roi/${p.industry.slug}/${p.band.slug}/${p.volume}/${p.aht.slug}/${p.scenario.slug}`;
+  const relatedLabel = (p: PageSpec) =>
+    `${p.volume.toLocaleString(en ? "en-US" : "zh-CN")} ${en ? "tickets/mo" : "条工单/月"} · ${en ? p.aht.en : p.aht.zh} AHT · ${en ? p.scenario.en : p.scenario.zh}`;
+  const hubHref = en
+    ? `/roi/industry/${industry.slug}`
+    : `/zh/roi/industry/${industry.slug}`;
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* hreflang is declared in generateMetadata (alternates.languages). A manual
@@ -102,7 +116,10 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
 
       <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-10">
         <p className="text-sm font-medium text-slate-500">
-          {industryLabel(industry.slug, en)} · {bandLabel(band.slug, en)} ·{" "}
+          <Link href={hubHref} className="hover:text-slate-900">
+            {industryLabel(industry.slug, en)}
+          </Link>{" "}
+          · {bandLabel(band.slug, en)} ·{" "}
           {volume.toLocaleString(en ? "en-US" : "zh-CN")}{" "}
           {en ? "tickets/mo" : "条工单/月"} · {en ? aht.en : aht.zh} AHT ·{" "}
           {en ? scenario.en : scenario.zh}
@@ -210,12 +227,12 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
               : "上面的数字基于一组假设。换掉工单量、AHT 或人力成本，结论就会变。"}
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <a
+            <RefLink
               href={permalink}
               className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700"
             >
               {en ? "Open with these numbers" : "按这组数据打开测算器"}
-            </a>
+            </RefLink>
             <Link
               href={en ? "/methodology" : "/zh"}
               className="rounded-lg border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
@@ -224,6 +241,33 @@ export function CorpusPage({ spec, lang }: { spec: PageSpec; lang: "en" | "zh" }
             </Link>
           </div>
         </div>
+
+        {/* The internal-link mesh. Every page links to its closest neighbours,
+            so a crawler that enters anywhere can walk the whole corpus. */}
+        {related.length > 0 && (
+          <div className="mt-8 rounded-lg border border-slate-200 bg-white p-6">
+            <h2 className="font-semibold text-slate-900">
+              {en ? "Related scenarios" : "相邻场景"}
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              {en
+                ? "The answer changes as volume, handle time and coverage move. These are the closest combinations worth comparing against."
+                : "改变量级、处理时长或覆盖率，结论会跟着变。以下是最值得对比的相邻组合。"}
+            </p>
+            <ul className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+              {related.map((p) => (
+                <li key={`${p.industry.slug}-${p.band.slug}-${p.volume}-${p.aht.slug}-${p.scenario.slug}`}>
+                  <Link
+                    href={relatedHref(p)}
+                    className="block rounded-lg border border-slate-200 px-3 py-2 text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                  >
+                    {relatedLabel(p)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <p className="mt-8 text-xs text-slate-400">
           {en

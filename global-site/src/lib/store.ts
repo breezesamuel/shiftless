@@ -196,6 +196,8 @@ export type StoredLead = {
   band?: string;
   volume?: number;
   scenario?: string;
+  /** Referrer: the person whose shared link brought this visitor (their email). */
+  ref?: string;
 };
 
 const LEAD_TTL_SECONDS = 60 * 60 * 24 * 365; // 1 year

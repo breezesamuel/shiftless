@@ -40,6 +40,18 @@ export function Upsell() {
     if (Object.keys(fromLink).length) setInputs((p) => ({ ...p, ...fromLink }));
   }, []);
 
+  // Referrer attribution. If this checkout was reached through a shared
+  // ?ref=<email> link (forwarded from a corpus page), the referrer's identity
+  // rides along with the order so the operator can honour the programme.
+  const ref = (() => {
+    try {
+      const r = new URLSearchParams(window.location.search).get("ref") || "";
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(r) ? r.toLowerCase() : undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+
   const report = useMemo(() => buildReport(inputs), [inputs]);
   const isNo = report.verdictTone === "bad";
 
@@ -55,7 +67,7 @@ export function Upsell() {
       const r = await fetch("/api/order", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, tier, rail, inputs }),
+        body: JSON.stringify({ email, tier, rail, inputs, ref }),
       });
       const j = await r.json();
       if (!r.ok || !j.ok) {

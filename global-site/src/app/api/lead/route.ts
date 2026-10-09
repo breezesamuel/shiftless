@@ -44,6 +44,8 @@ type Lead = {
   band?: string;
   volume?: number;
   scenario?: string;
+  /** Referrer email from a shared ?ref= link. Attribution for the programme. */
+  ref?: string;
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -84,6 +86,13 @@ export async function POST(req: NextRequest) {
     band: typeof body.band === "string" ? body.band.slice(0, 20) : undefined,
     volume: num(body.volume, 1e9),
     scenario: typeof body.scenario === "string" ? body.scenario.slice(0, 30) : undefined,
+    // Attribution only: who shared the link this visitor arrived through. A
+    // non-email value is dropped rather than stored, so a stray ?ref=spam
+    // cannot pollute the export or appear in an alert.
+    ref:
+      typeof body.ref === "string" && EMAIL_RE.test(body.ref.trim())
+        ? body.ref.trim().toLowerCase().slice(0, 254)
+        : undefined,
   };
 
   const line =

@@ -97,6 +97,13 @@ export async function POST(req: Request) {
 
   const rail = body.rail === "alipay" ? "alipay" : "card";
   const inputs = validInputs(body.inputs);
+  // Referrer attribution from a shared ?ref= link, forwarded by the checkout
+  // form. An email-shaped value is kept and shown to the operator so the
+  // referral programme can be settled; anything else is dropped.
+  const ref =
+    typeof body.ref === "string" && EMAIL.test(body.ref.trim())
+      ? body.ref.trim().toLowerCase().slice(0, 254)
+      : undefined;
   const orderId = "SHF-" + randomUUID().slice(0, 8).toUpperCase();
   const permalink = `https://shiftless.vercel.app/report?${encodeState(inputs)}`;
 
@@ -111,6 +118,7 @@ export async function POST(req: Request) {
     ahtMinutes: inputs.ahtMinutes,
     automationCoverage: inputs.automationCoverage,
     permalink,
+    ref,
     ts: new Date().toISOString(),
   };
   console.log(`[ORDER] ${JSON.stringify(order)}`);
@@ -132,7 +140,9 @@ export async function POST(req: Request) {
       amount: price.toFixed(2),
       orderId,
       description: `Shiftless ${tier} report`,
-      returnUrl: `${SITE}/api/paypal/return?orderId=${orderId}&permalink=${encodeURIComponent(permalink)}`,
+      returnUrl: `${SITE}/api/paypal/return?orderId=${orderId}&permalink=${encodeURIComponent(permalink)}${
+        ref ? `&ref=${encodeURIComponent(ref)}` : ""
+      }`,
       cancelUrl: `${SITE}/`,
     });
     if (pay) {
@@ -163,6 +173,7 @@ export async function POST(req: Request) {
         `channel: ${inputs.channel}`,
         `monthlyTickets: ${inputs.monthlyTickets}`,
         `ahtMinutes: ${inputs.ahtMinutes}`,
+        ref ? `ref: ${ref}` : null,
         `checkout: ${paymentUrl ? "PayPal checkout created" : "manual transfer"}`,
         "",
         `报告链接: ${permalink}`,

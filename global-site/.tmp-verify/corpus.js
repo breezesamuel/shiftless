@@ -25,6 +25,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.HEADCOUNT_BANDS = exports.COVERAGE_SCENARIOS = exports.AHT_VARIANTS = exports.VOLUMES = exports.INDUSTRIES = exports.INDUSTRY_EDITORIAL = void 0;
 exports.buildCorpus = buildCorpus;
 exports.teamLabel = teamLabel;
+exports.relatedPages = relatedPages;
 exports.bandLabel = bandLabel;
 exports.industryLabel = industryLabel;
 const model_1 = require("./model");
@@ -256,6 +257,44 @@ function buildCorpus() {
 }
 function teamLabel(v) {
     return `${fmtTeam(v)} ${v >= 1000 ? "tickets" : v === 1 ? "ticket" : "tickets"}/mo`;
+}
+/**
+ * Nearest indexable sibling pages, for the internal-link mesh.
+ *
+ * A corpus page used to have exactly two exits: the calculator and the
+ * methodology page. Crawlers entering at any URL could only move within the
+ * top-level site, which left 4,136 pages one click away from everything else
+ * and effectively invisible. This changes that: every page now links to its
+ * closest neighbours — same-band, same-industry pages differing only in
+ * volume, AHT or coverage — so a crawler that lands anywhere can walk the
+ * whole space.
+ *
+ * Distance is what a reader would find natural, not randomness: volume moves
+ * cost most (they change the answer the most), AHT and scenario less, and the
+ * same band/industry are the tie-breakers. Pages whose honest verdict is
+ * don't-buy are excluded — they are noindexed, and linking to a page the
+ * site keeps out of the index would waste the crawl budget.
+ */
+function relatedPages(spec, limit = 5) {
+    const ahtIdx = exports.AHT_VARIANTS.findIndex((a) => a.slug === spec.aht.slug);
+    const scenIdx = exports.COVERAGE_SCENARIOS.findIndex((s) => s.slug === spec.scenario.slug);
+    return buildCorpus()
+        .pages.filter((p) => p !== spec && !p.notWorthIt)
+        .map((p) => {
+        const pi = exports.AHT_VARIANTS.findIndex((a) => a.slug === p.aht.slug);
+        const psi = exports.COVERAGE_SCENARIOS.findIndex((s) => s.slug === p.scenario.slug);
+        let d = Math.abs(Math.log2(spec.volume / p.volume)) * 8;
+        d += Math.abs(ahtIdx - pi);
+        d += Math.abs(scenIdx - psi) * 1.5;
+        if (spec.band.slug !== p.band.slug)
+            d += 25;
+        if (spec.industry.slug !== p.industry.slug)
+            d += 100;
+        return { p, d };
+    })
+        .sort((a, b) => a.d - b.d)
+        .slice(0, Math.max(0, Math.min(limit, 12)))
+        .map((s) => s.p);
 }
 function bandLabel(slug, en) {
     const map = {

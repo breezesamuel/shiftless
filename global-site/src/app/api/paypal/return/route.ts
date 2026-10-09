@@ -48,6 +48,10 @@ export async function GET(req: Request) {
   const permalink = rawPermalink.startsWith(`${SITE}/report?`)
     ? rawPermalink
     : "";
+  // Referrer attribution rides on the return URL when the buyer arrived via a
+  // shared ?ref= link. Present only for display/ledger; never trusted for
+  // anything that decides payment.
+  const ref = (url.searchParams.get("ref") || "").slice(0, 254);
 
   const result = await captureOrder(token);
 
@@ -60,6 +64,7 @@ export async function GET(req: Request) {
       currency: result.currency,
       payer: result.payerEmail,
       status: result.status,
+      ref: ref || undefined,
       ts: new Date().toISOString(),
     };
     console.log(`[ORDER] ${JSON.stringify(record)}`);
@@ -85,6 +90,7 @@ export async function GET(req: Request) {
           `currency: ${result.currency}`,
           `payer: ${result.payerEmail}`,
           `status: ${result.status}`,
+          ...(ref ? [`ref: ${ref}`] : []),
         ].join("\n")
       );
       alerted = r.sent;
