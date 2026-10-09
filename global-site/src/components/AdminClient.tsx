@@ -12,6 +12,26 @@ type Data = {
   missions: Row[];
   events: Row[];
   knowledge: { templates: Record<string, { drafted: number; sent: number; replied: number; failed: number }> };
+  summary?: {
+    kpis: {
+      leads: number;
+      orders: number;
+      capturedOrders: number;
+      pendingManualOrders: number;
+      revenueUsd: number;
+      revenueCny: number;
+      convertedLeads: number;
+      leadReplyRate: number | null;
+    };
+    referrers: Array<{
+      referrer: string;
+      referrals: number;
+      monthsOwed: number;
+      paidValue: number;
+      currency: string;
+      allPaidOut: boolean;
+    }>;
+  };
   autoSend: boolean;
 };
 
@@ -99,6 +119,34 @@ export function AdminClient({ token }: { token: string }) {
         </button>
       </div>
 
+      {data.summary && (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiCard
+            label="Captured revenue"
+            value={`$${data.summary.kpis.revenueUsd} / ¥${data.summary.kpis.revenueCny}`}
+          />
+          <KpiCard
+            label="Orders"
+            value={`${data.summary.kpis.capturedOrders}/${data.summary.kpis.orders} captured`}
+            sub={`${data.summary.kpis.pendingManualOrders} awaiting manual confirm`}
+          />
+          <KpiCard
+            label="Lead conversion"
+            value={`${data.summary.kpis.convertedLeads}/${data.summary.kpis.leads}`}
+            sub="leads that became captured orders"
+          />
+          <KpiCard
+            label="Lead reply rate"
+            value={
+              data.summary.kpis.leadReplyRate === null
+                ? "—"
+                : `${Math.round(data.summary.kpis.leadReplyRate * 100)}%`
+            }
+            sub="replied / sent (lead-followup)"
+          />
+        </div>
+      )}
+
       <Section title="Pending missions (drafted, awaiting approval)">
         {pending.length === 0 && <Empty text="Nothing awaiting approval." />}
         {pending.map((m) => (
@@ -159,7 +207,7 @@ export function AdminClient({ token }: { token: string }) {
             <pre className="mt-2 whitespace-pre-wrap rounded bg-slate-50 p-2 text-xs text-slate-600">
               {String(m.body)}
             </pre>
-            <div className="mt-2 flex gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               <button
                 type="button"
                 disabled={busy === m.id + "outcome"}
@@ -176,6 +224,36 @@ export function AdminClient({ token }: { token: string }) {
               >
                 Mark bounce
               </button>
+              {m.kind === "delivery" &&
+                (m.deliveredAt ? (
+                  <span className="text-xs text-emerald-600 py-1">
+                    delivered {String(m.deliveredAt).slice(0, 10)}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={busy === m.id + "deliver"}
+                    onClick={() => act("deliver", String(m.id))}
+                    className="rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-700"
+                  >
+                    Mark delivered
+                  </button>
+                ))}
+            </div>
+          </div>
+        ))}
+      </Section>
+
+      <Section title="Referral settlement (by referrer)">
+        {(!data.summary || data.summary.referrers.length === 0) && <Empty text="No confirmed referrals to settle." />}
+        {data.summary?.referrers.map((r) => (
+          <div key={r.referrer} className="rounded-lg border border-slate-200 p-3 text-sm">
+            <div className="flex flex-wrap justify-between gap-2">
+              <span className="font-medium text-slate-900">{r.referrer}</span>
+              <span className={`text-xs ${r.allPaidOut ? "text-emerald-600" : "text-amber-600"}`}>
+                {r.referrals} paid · +{r.monthsOwed} months owed · {r.currency === "USD" ? "$" : "¥"}
+                {r.paidValue} · {r.allPaidOut ? "ALL SETTLED" : "payments pending"}
+              </span>
             </div>
           </div>
         ))}
@@ -316,6 +394,16 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</h2>
       <div className="mt-2 space-y-2">{children}</div>
     </section>
+  );
+}
+
+function KpiCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4">
+      <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</div>
+      <div className="mt-1 text-xl font-bold text-slate-900">{value}</div>
+      {sub ? <div className="mt-0.5 text-xs text-slate-500">{sub}</div> : null}
+    </div>
   );
 }
 

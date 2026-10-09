@@ -399,6 +399,19 @@ export async function recordOutcome(
   }
 }
 
+/** Operator confirms a sent delivery mission was actually handed over. */
+export async function markDelivered(id: string): Promise<boolean> {
+  try {
+    const missions = await listMissions(2000);
+    const m = missions.find((x) => x.id === id);
+    if (!m || m.status !== "sent") return false;
+    if (m.deliveredAt) return true; // idempotent
+    return updateMission(id, { deliveredAt: new Date().toISOString() });
+  } catch {
+    return false;
+  }
+}
+
 function kindKey(kind: string, variant?: string): string {
   return variant ? `${kind}:${variant}` : kind;
 }

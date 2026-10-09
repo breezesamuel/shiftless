@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { approveMission, rejectMission, recordOutcome, retryMission, confirmManualPayment } from "@/lib/agent";
+import { approveMission, rejectMission, recordOutcome, retryMission, confirmManualPayment, markDelivered } from "@/lib/agent";
 import { payoutReferral } from "@/lib/store";
 import { adminTokenOk } from "@/lib/admin";
 
@@ -53,6 +53,9 @@ export async function POST(req: NextRequest) {
     const operatorEmail = String(body.operatorEmail || "admin").trim();
     const r = await confirmManualPayment(id, operatorEmail);
     return NextResponse.json(r);
+  }
+  if (body.action === "deliver") {
+    return NextResponse.json({ ok: await markDelivered(id) });
   }
   return NextResponse.json({ ok: false, error: "unknown action" }, { status: 400 });
 }

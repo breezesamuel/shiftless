@@ -521,6 +521,8 @@ export type AgentMission = {
   outcome?: string;
   /** SMTP failure reason when status === "failed". */
   failureReason?: string;
+  /** Operator marked the delivery as handed over (after-sales closure). */
+  deliveredAt?: string;
 };
 
 export async function saveMission(m: AgentMission): Promise<boolean> {

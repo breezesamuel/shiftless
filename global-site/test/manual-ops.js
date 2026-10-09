@@ -195,5 +195,21 @@ check("drafted counter is wired (not stuck at 0)", () => {
 check("nudges honour AGENT_AUTO_SEND like every other mission", () => {
   assert.ok(agent.includes("if (AUTO_SEND) await approveMission(nudge.id)"), "nudge bypasses auto-send");
 });
+check("missions record a deliveredAt for after-sales closure", () => {
+  assert.ok(store.includes("deliveredAt?: string;"), "mission field missing");
+  assert.ok(agent.includes("export async function markDelivered("), "markDelivered missing");
+  assert.ok(agent.includes("updateMission(id, { deliveredAt:"), "deliveredAt not written");
+});
+check("admin exposes the deliver action and the cockpit button", () => {
+  assert.ok(adminMissions.includes('body.action === "deliver"'), "deliver action missing");
+  assert.ok(adminMissions.includes("markDelivered("), "markDelivered not called");
+  assert.ok(adminClient.includes('onClick={() => act("deliver"'), "cockpit button missing");
+});
+check("admin data computes and returns the operator summary", () => {
+  assert.ok(adminData.includes("operatorSummary("), "summary not computed");
+  assert.ok(adminData.includes("summary,"), "summary not returned");
+  assert.ok(adminClient.includes("Referral settlement (by referrer)"), "settlement section missing");
+  assert.ok(adminClient.includes("Captured revenue"), "KPI card missing");
+});
 
 console.log(`\n${passed} manual-ops checks passed`);
