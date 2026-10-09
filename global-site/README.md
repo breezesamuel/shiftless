@@ -300,5 +300,77 @@ the UI. Both arrived the moment a public POST endpoint was added.
 
 ---
 
+## Autonomous ops backend & operator runbook (2026-10)
+
+Everything below is **backend-only**: it lives under `/api/*` and `/admin`, is
+never indexed, and changes nothing a visitor sees. It exists so the pipeline
+keeps working while nobody is watching — and so a real customer is never left
+undelivered.
+
+### What it does
+
+Every business event (lead, order, payment, intel run) is recorded to Blob
+(one JSON object per file; no KV required). A planner turns each event into a
+bilingual, honest draft ("1 business day, human reply" — never a fake "sent"
+claim). Drafts sit in the pending queue for one-tap operator approval, or send
+automatically when `AGENT_AUTO_SEND=1`. Template counters (`drafted/sent/
+replied/failed`) are real: `lead-followup` has two variants (v1 factual / v2
+consultative) and the planner picks the one with the best replied rate once a
+variant has ≥3 sends.
+
+### Operator cockpit — `/admin?token=<secret>`
+
+The secret is `AGENT_ADMIN_TOKEN`, falling back to `LEAD_EXPORT_TOKEN`.
+What it does in one screen:
+
+| Action | Where | Notes |
+|---|---|---|
+| Order KPIs (revenue, conversions, reply rate) | top cards | Revenue counts **captured only** |
+| Confirm a manual transfer | Orders → **Confirm paid (deliver)** | flips `manual→captured`, writes referral row if `?ref=`, drafts delivery + referral mails |
+| Approve / reject drafted missions | Pending missions | Approve = send now |
+| Retry / dismiss failed sends | Failed missions | reason shown (e.g. SMTP) |
+| Mark a delivery handed over | Sent missions, kind `delivery` → **Mark delivered** | after-sales closure |
+| Settle referrals | Referral settlement (by referrer) / ledger → **Mark paid out** | months owed computed from the real plan table |
+| Export CSV | **Export CSV** link → leads/orders/referrals | formula-injection sanitised |
+
+### Environment variables
+
+| Var | Needed for | Default |
+|---|---|---|
+| `BLOB_READ_WRITE_TOKEN` | all ledgers (orders/referrals/missions/knowledge) | on in prod |
+| `SMTP_HOST/PORT/USER/AUTH_CODE` | all outbound mail | on in prod |
+| `LEAD_EXPORT_TOKEN` | `/api/lead/export` + cockpit fallback | on in prod |
+| `CRON_SECRET` | `/api/cron/refresh`, `/api/cron/nudge` | on in prod |
+| `AGENT_ADMIN_TOKEN` | cockpit (preferred over fallback) | *set this* |
+| `AGENT_AUTO_SEND` | `1` = drafts send without approval | `0` (approval-first) |
+| `AGENT_ALERT_ON_FAILURE` | `1` = email operator on send failure | `0` |
+| `AGENT_NUDGE_DAYS` | days before a lead follow-up nudge | `2` |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | GSC verification + sitemap data | unset |
+| `KV_REST_API_URL/TOKEN` | quota, magic-link auth, entitlement | unset (Blob covers ledgers) |
+| `PAYPAL_CLIENT_ID/SECRET` | online card rail | on in prod |
+| `ALIPAY_APP_ID/PRIVATE_KEY/ALIPAY_PUBLIC_KEY` | CNY online rail | unset → CNY falls back to manual |
+| `OWNER_ALERT_EMAIL` | where operator alerts go | SMTP_USER |
+
+### Cron jobs (`vercel.json`)
+
+| Path | Schedule | Work |
+|---|---|---|
+| `/api/cron/refresh?secret=` | daily 03:00 | source-health pings + GitHub metadata only (never content), records an intel event |
+| `/api/cron/nudge?secret=` | daily 09:00 | drafts one follow-up per sent lead mission older than `AGENT_NUDGE_DAYS` with no outcome |
+
+Intel runs never ingest prose/code — only HTTP status, stars and URLs. A dead
+reference source drafts an `intel-dead-source` task into the pending queue
+(deduped on the dead set).
+
+### Honesty boundaries (same as the public site)
+
+- No draft ever claims a mail was sent. Status is explicit.
+- Customer comms promise only what happens ("1 business day", real reply).
+- Money is never marked received by a form — only a human "Confirm paid" (or a
+  PayPal capture) flips an order to `captured`.
+- Nothing the agent sends is fabricated; no scraping lands on the site.
+
+---
+
 Published by Shanghai Bingdashan Intelligent Technology Co., Ltd.
 (上海丙大山智能科技有限公司), Shanghai.
