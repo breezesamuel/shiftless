@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { sendOwnerAlert } from "@/lib/mail";
+import { saveOrder } from "@/lib/store";
+import { emit } from "@/lib/agent";
 
 const PRICES: Record<string, number> = {
   report: 1999,
@@ -68,6 +70,21 @@ export async function POST(req: Request) {
     ts: new Date().toISOString(),
   };
   console.log(`[GEO-ORDER] ${JSON.stringify(order)}`);
+
+  // Mirror into the Blob ledger + emit the order event so the manual GEO
+  // order appears in the /admin cockpit with its own "Confirm paid" action.
+  void saveOrder({
+    orderId,
+    email,
+    tier,
+    priceUsd: priceCny,
+    rail: "geo",
+    ts: order.ts,
+    paymentState: "manual",
+    amount: String(priceCny),
+    currency: "CNY",
+  });
+  void emit("order", { orderId, email, tier, priceUsd: priceCny, lang: "zh", currency: "CNY" });
 
   const hook = process.env.ORDER_WEBHOOK_URL;
   if (hook) {

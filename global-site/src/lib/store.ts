@@ -508,6 +508,8 @@ export async function listAgentEvents(limit = 100): Promise<AgentEvent[]> {
 export type AgentMission = {
   id: string;
   kind: string;
+  /** Draft variant id for A/B-tested template kinds (e.g. lead-followup). */
+  variant?: string;
   status: "pending" | "sent" | "rejected" | "failed";
   to: string;
   subject: string;
@@ -517,6 +519,8 @@ export type AgentMission = {
   createdAt: string;
   sentAt?: string;
   outcome?: string;
+  /** SMTP failure reason when status === "failed". */
+  failureReason?: string;
 };
 
 export async function saveMission(m: AgentMission): Promise<boolean> {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listLeads, isLeadStorageConfigured } from "@/lib/store";
+import { listLeads, isLeadStorageConfigured, type StoredLead } from "@/lib/store";
+import { scoreLead } from "@/lib/scoring";
 
 // Node runtime, not edge: store.ts derives ids with node:crypto (the same
 // primitive auth.ts already uses), and the edge bundle cannot resolve it.
@@ -64,6 +65,7 @@ export async function GET(req: NextRequest) {
     "id",
     "receivedAt",
     "email",
+    "score",
     "ref",
     "monthlyTickets",
     "ahtMinutes",
@@ -83,7 +85,7 @@ export async function GET(req: NextRequest) {
 
   const rows = [
     cols.join(","),
-    ...leads.map((l) => cols.map((c) => cell(l[c])).join(",")),
+    ...(leads as StoredLead[]).map((l) => cols.map((c) => cell(c === "score" ? scoreLead(l) : l[c])).join(",")),
   ].join("\n");
 
   return new NextResponse(rows, {

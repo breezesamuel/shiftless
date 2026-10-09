@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { recordAgentEvent } from "@/lib/store";
+import { emit } from "@/lib/agent";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -108,14 +108,14 @@ export async function GET(req: NextRequest) {
     githubTrend(),
   ]);
   const dead = sources.filter((s) => !s.ok).length;
-  await recordAgentEvent({
-    kind: "intel",
-    data: {
-      run: "cron-refresh",
-      sources,
-      github,
-      summary: `${sources.length - dead}/${sources.length} sources alive, ${github.length} github signals`,
-    },
+  // emit() records the intel event AND lets the planner draft an operator task
+  // when reference sources go dead. Fire-and-forget by design: a Blob or mail
+  // hiccup must never break the cron response.
+  void emit("intel", {
+    run: "cron-refresh",
+    sources,
+    github,
+    summary: `${sources.length - dead}/${sources.length} sources alive, ${github.length} github signals`,
   });
   return NextResponse.json({
     ok: true,

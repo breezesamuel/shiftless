@@ -13,6 +13,8 @@ import type { PaymentMethod } from "@/lib/referral";
 import { buildPagePay, AlipayNotConfiguredError } from "@/lib/alipay";
 import { saveOrder, ordersAvailable } from "@/lib/orders";
 import { sendOwnerAlert } from "@/lib/mail";
+import { saveOrder as saveOrderRow } from "@/lib/store";
+import { emit } from "@/lib/agent";
 
 /**
  * Subscription order intake.
@@ -86,6 +88,17 @@ export async function POST(req: Request) {
 
   const currency = isCurrency(body.currency) ? body.currency : "cny";
 
+  // Referrer attribution from a shared ?ref= link. An email-shaped value is
+  // kept for the referral programme; anything else is dropped. Passed through
+  // to the Blob ledger and the agent so a manual order's payment confirmation
+  // can write the referral row later.
+  const ref =
+    typeof body.ref === "string" && EMAIL.test(body.ref.trim())
+      ? body.ref.trim().toLowerCase().slice(0, 254)
+      : undefined;
+
+  const lang = body.lang === "zh" ? "zh" : "en";
+
   // Payment method is optional. An unconfigured channel is downgraded to
   // manual rather than rejected, so a customer is never shown a dead end.
   const methodRaw = String(body.paymentMethod || "");
@@ -157,6 +170,24 @@ export async function POST(req: Request) {
         createdAt: order.ts,
       });
 
+      // Mirror the order into the Blob ledger (the operator cockpit and agent
+      // run off Blob; this keeps every rail in one place) and emit the order
+      // event for the audit trail. Fire-and-forget — the KV record above is
+      // the authoritative one for the Alipay notify path.
+      void saveOrderRow({
+        orderId,
+        email,
+        tier: plan.id,
+        priceUsd: price,
+        rail: "sub-order",
+        ref,
+        ts: order.ts,
+        paymentState: "checkout-created",
+        amount: String(price),
+        currency: currency.toUpperCase(),
+      });
+      void emit("order", { orderId, email, tier: plan.id, priceUsd: price, ref, lang, currency });
+
       console.log(
         `[SUB-ORDER] ${orderId} alipay checkout created for CNY ${price} (${plan.months}mo)`
       );
@@ -212,6 +243,23 @@ export async function POST(req: Request) {
   // Neither grants access.
   console.log(`[SUB-ORDER] ${JSON.stringify(order)}`);
 
+  // Mirror the manual order into the Blob ledger + emit the order event. The
+  // manual path is the one that needs the operator to confirm receipt, so the
+  // ledger row must exist for /admin's "Confirm paid" action to find it.
+  void saveOrderRow({
+    orderId,
+    email,
+    tier: plan.id,
+    priceUsd: price,
+    rail: "sub-order",
+    ref,
+    ts: order.ts,
+    paymentState: "manual",
+    amount: String(price),
+    currency: currency.toUpperCase(),
+  });
+  void emit("order", { orderId, email, tier: plan.id, priceUsd: price, ref, lang, currency });
+
   const hook = process.env.ORDER_WEBHOOK_URL;
   if (hook) {
     fetch(hook, {
@@ -241,6 +289,7 @@ export async function POST(req: Request) {
         `currency: ${currency}`,
         `price: ${price}`,
         `paymentMethod: ${method ?? "manual"}`,
+        ...(ref ? [`ref: ${ref}`] : []),
         "",
         "到账后需人工确认并开通。",
       ].join("\n")

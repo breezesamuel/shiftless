@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { approveMission, rejectMission, recordOutcome, retryMission } from "@/lib/agent";
+import { approveMission, rejectMission, recordOutcome, retryMission, confirmManualPayment } from "@/lib/agent";
 import { payoutReferral } from "@/lib/store";
 import { adminTokenOk } from "@/lib/admin";
 
@@ -7,8 +7,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Admin actions: mission approve/reject/outcome + referral payout.
- * Token-guarded by AGENT_ADMIN_TOKEN / LEAD_EXPORT_TOKEN.
+ * Admin actions: mission approve/reject/outcome/retry, referral payout, and
+ * manual-payment confirmation. Token-guarded by AGENT_ADMIN_TOKEN /
+ * LEAD_EXPORT_TOKEN.
  */
 export async function POST(req: NextRequest) {
   if (!adminTokenOk(req.nextUrl.searchParams.get("token"))) {
@@ -46,6 +47,11 @@ export async function POST(req: NextRequest) {
   }
   if (body.action === "retry") {
     const r = await retryMission(id);
+    return NextResponse.json(r);
+  }
+  if (body.action === "confirm-manual") {
+    const operatorEmail = String(body.operatorEmail || "admin").trim();
+    const r = await confirmManualPayment(id, operatorEmail);
     return NextResponse.json(r);
   }
   return NextResponse.json({ ok: false, error: "unknown action" }, { status: 400 });

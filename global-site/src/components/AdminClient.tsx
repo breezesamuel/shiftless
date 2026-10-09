@@ -118,6 +118,7 @@ export function AdminClient({ token }: { token: string }) {
                 <span className="font-medium text-rose-900">{String(m.subject)}</span>
                 <span className="text-xs text-rose-600">
                   {String(m.kind)} → {String(m.to)} · failed
+                  {m.failureReason ? ` · ${String(m.failureReason)}` : ""}
                 </span>
               </div>
               <pre className="mt-2 whitespace-pre-wrap rounded bg-white p-2 text-xs text-slate-600">
@@ -220,30 +221,61 @@ export function AdminClient({ token }: { token: string }) {
               : ps === "checkout-created"
               ? "rounded bg-sky-100 text-sky-800"
               : "rounded bg-amber-100 text-amber-800";
+          const currency = String(o.currency || "USD");
           return (
             <div key={String(o.orderId)} className="rounded-lg border border-slate-200 p-3 text-sm">
               <div className="flex flex-wrap justify-between gap-2">
                 <span className="font-medium text-slate-900">
-                  {String(o.orderId)} · {String(o.tier)} · ${String(o.priceUsd)}
+                  {String(o.orderId)} · {String(o.tier)} · {currency === "USD" ? "$" : "¥"}
+                  {String(o.priceUsd)}
                 </span>
                 <span className="text-xs text-slate-400 flex items-center gap-2">
                   <span className={`px-1.5 py-0.5 text-[10px] font-medium ${badge}`}>{ps}</span>
                   {String(o.email)}
                   {o.ref ? ` · ref ${String(o.ref)}` : ""}
+                  {o.rail ? ` · ${String(o.rail)}` : ""}
                 </span>
               </div>
+              {ps === "manual" && (
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    disabled={busy === String(o.orderId) + "confirm-manual"}
+                    onClick={() => act("confirm-manual", String(o.orderId))}
+                    className="rounded bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    Confirm paid (deliver)
+                  </button>
+                  <span className="ml-3 text-xs text-slate-400">
+                    Flips capture → writes referral ledger (if ref) → drafts delivery mail.
+                  </span>
+                </div>
+              )}
             </div>
           );
         })}
       </Section>
 
-      <Section title="Leads">
+      <Section title="Leads (sorted by score)">
         {data.leads.length === 0 && <Empty text="No leads yet." />}
         {data.leads.map((l) => (
           <div key={String(l.id)} className="rounded-lg border border-slate-200 p-3 text-sm">
             <div className="flex flex-wrap justify-between gap-2">
               <span className="font-medium text-slate-900">{String(l.email)}</span>
               <span className="text-xs text-slate-400">
+                {typeof l.score === "number" ? (
+                  <span
+                    className={`mr-2 px-1.5 py-0.5 text-[10px] font-bold rounded ${
+                      l.score >= 7
+                        ? "bg-emerald-100 text-emerald-800"
+                        : l.score >= 4
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    score {l.score}/10
+                  </span>
+                ) : null}
                 {String(l.source || "")} · {String(l.industry || "")} · {String(l.volume || "")} ·{" "}
                 {String(l.receivedAt || "").slice(0, 10)}
                 {l.ref ? ` · ref ${String(l.ref)}` : ""}

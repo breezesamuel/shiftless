@@ -105,7 +105,7 @@ check("admin missions route guards approve/reject/outcome", () => {
 });
 check("cron refresh is secret-guarded and records intel (no content copy)", () => {
   assert.ok(cronRefresh.includes("CRON_SECRET"), "cron secret missing");
-  assert.ok(cronRefresh.includes("recordAgentEvent("), "intel not recorded");
+  assert.ok(cronRefresh.includes('emit("intel"'), "intel not emitted");
   assert.ok(cronRefresh.includes("stargazers_count"), "github meta missing");
   assert.ok(!/copy|scrape|paste/i.test(cronRefresh), "cron must not copy content");
 });
