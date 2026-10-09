@@ -192,5 +192,8 @@ check("vercel cron schedules the nudge sweep daily", () => {
 check("drafted counter is wired (not stuck at 0)", () => {
   assert.ok(agent.includes('bumpKnowledge(kindKey(mission.kind, mission.variant), "drafted")'), "drafted not bumped");
 });
+check("nudges honour AGENT_AUTO_SEND like every other mission", () => {
+  assert.ok(agent.includes("if (AUTO_SEND) await approveMission(nudge.id)"), "nudge bypasses auto-send");
+});
 
 console.log(`\n${passed} manual-ops checks passed`);

@@ -548,6 +548,7 @@ export async function draftNudges(now = new Date()): Promise<{ drafted: number; 
         createdAt: now.toISOString(),
       };
       const saved = await saveMission(nudge);
+      if (AUTO_SEND) await approveMission(nudge.id);
       if (saved) drafted += 1;
       else skipped += 1;
     }
