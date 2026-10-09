@@ -58,6 +58,7 @@ export default function ZhPage() {
             <Link href="/zh/benchmarks" className="hover:text-slate-900">行业基准</Link>
             <a href="#faq" className="hover:text-slate-900">常见问题</a>
             <Link href="/geo" className="hover:text-slate-900">AI 可见度体检</Link>
+            <Link href="/zh/tools" className="hover:text-slate-900">工具</Link>
             <Link href="/" className="hover:text-slate-900">English</Link>
           </nav>
         </div>

@@ -31,6 +31,7 @@ export default function Home() {
             <a href="#method" className="hover:text-slate-900">Method</a>
             <a href="#faq" className="hover:text-slate-900">FAQ</a>
             <Link href="/geo" className="hover:text-slate-900">AI Visibility Audit</Link>
+            <Link href="/tools" className="hover:text-slate-900">Tools</Link>
           </nav>
         </div>
       </header>

@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node test/verify.js && node test/report.js && node test/referral-logic.js && node test/storage-guard.js && node test/lead-capture.js && node test/corpus-unique.js && node test/alipay-logic.js && node test/quarterly-guard.js && node test/geo-order-e2e.js && node test/payment-details.js && node test/paypal-logic.js && node test/indexnow-guard.js && node test/owner-alert.js && node test/corpus-cta.js && node test/referral-attribution.js && node test/agent-ops.js && node test/manual-ops.js && node test/operator-summary.js && node test/canonical-site.js",
+    "test": "node test/verify.js && node test/report.js && node test/referral-logic.js && node test/storage-guard.js && node test/lead-capture.js && node test/corpus-unique.js && node test/alipay-logic.js && node test/quarterly-guard.js && node test/geo-order-e2e.js && node test/payment-details.js && node test/paypal-logic.js && node test/indexnow-guard.js && node test/owner-alert.js && node test/corpus-cta.js && node test/referral-attribution.js && node test/agent-ops.js && node test/manual-ops.js && node test/operator-summary.js && node test/canonical-site.js && node test/suite-directory.js",
     "corpus:size": "node test/corpus-size.js",
     "health": "node scripts/health.js",
     "typecheck": "tsc --noEmit",
