@@ -167,7 +167,23 @@ export const SUITE_TOOLS: SuiteTool[] = [
     priceZh: "先免费算一次",
   },
   {
-    id: "boostai",
+    id: "boostai-workforce",
+    // TODO: switch to https://ai.highkingflower.com once the hichina CNAME for
+    // `ai` exists — the domain is already attached to the `web` project, but it
+    // currently falls through to the Aliyun wildcard and does not resolve.
+    url: "https://web-kappa-ten-34.vercel.app",
+    name: "BoostAI Digital Workforce",
+    nameZh: "BoostAI 数字员工",
+    tagline:
+      "AI digital employees for sales, support, ops, finance and hiring, on a per-seat subscription. Public price list, an online ROI calculator, and a 4-week proof-of-concept with a partial refund if it misses.",
+    taglineZh:
+      "面向销售、客服、运营、财务、招聘的 AI 数字员工，按席位订阅。公开价目表、在线 ROI 测算，先做 4 周概念验证（POC），不达标退一半。",
+    category: "business",
+    price: "Per seat",
+    priceZh: "按席位订阅",
+  },
+  {
+    id: "boostai-matrix",
     url: "https://funnel-six-chi.vercel.app",
     name: "BoostAI Monetization Matrix",
     nameZh: "BoostAI 变现矩阵",
