@@ -1,2 +1,7 @@
 .vercel
 .env*
+
+# test transpile artifacts (never commit these)
+.tmp-verify/
+.tmp-report/
+.tmp-dev.pid
