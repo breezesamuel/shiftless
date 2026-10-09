@@ -162,4 +162,35 @@ check("approve/retry record the failure reason on the mission", () => {
   assert.ok(store.includes("failureReason?: string;"), "mission field missing");
 });
 
+console.log("\nfollow-up nudge engine (static)");
+
+const nudgeRoute = readSource("src/app/api/cron/nudge/route.ts");
+const vercelJson = readSource("vercel.json");
+
+check("draftNudges only touches sent lead-followup without outcome", () => {
+  assert.ok(agent.includes("export async function draftNudges("), "sweep missing");
+  assert.ok(agent.includes('m.kind !== "lead-followup"'), "wrong kind not skipped");
+  assert.ok(agent.includes('m.status !== "sent"'), "non-sent not skipped");
+  assert.ok(agent.includes("if (m.outcome) continue"), "outcome'd missions not skipped");
+});
+check("nudge id is deterministic on the source mission (no duplicates)", () => {
+  assert.ok(agent.includes("`lead-nudge:${m.id}`"), "deterministic id missing");
+});
+check("nudge is bilingual on the source mission's language", () => {
+  assert.ok(agent.includes("m.context?.lang === \"zh\""), "lang not honoured");
+  assert.ok(agent.includes("automated follow-up"), "english variant missing");
+});
+check("nudge endpoint is cron-secret guarded", () => {
+  assert.ok(nudgeRoute.includes("CRON_SECRET"), "secret missing");
+  assert.ok(nudgeRoute.includes("timingSafeEqual"), "constant-time compare missing");
+  assert.ok(nudgeRoute.includes("draftNudges()"), "sweep not called");
+});
+check("vercel cron schedules the nudge sweep daily", () => {
+  assert.ok(vercelJson.includes('"path": "/api/cron/nudge"'), "schedule missing");
+  assert.ok(vercelJson.includes('"schedule": "0 9 * * *"'), "wrong schedule");
+});
+check("drafted counter is wired (not stuck at 0)", () => {
+  assert.ok(agent.includes('bumpKnowledge(kindKey(mission.kind, mission.variant), "drafted")'), "drafted not bumped");
+});
+
 console.log(`\n${passed} manual-ops checks passed`);

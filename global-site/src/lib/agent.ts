@@ -322,6 +322,7 @@ export async function emit(kind: AgentEventKind, data: Record<string, unknown>):
     if (!mission) return;
     const saved = await saveMission(mission);
     if (!saved) return;
+    await bumpKnowledge(kindKey(mission.kind, mission.variant), "drafted");
     if (AUTO_SEND) {
       await approveMission(mission.id);
     }
@@ -429,7 +430,8 @@ async function bumpKnowledge(kindSince: string, field: string): Promise<void> {
   try {
     const k = await readAgentKnowledge();
     const t = (k.templates[kindSince] ||= { drafted: 0, sent: 0, replied: 0, failed: 0 });
-    if (field === "sent") t.sent += 1;
+    if (field === "drafted") t.drafted += 1;
+    else if (field === "sent") t.sent += 1;
     else if (field === "replied") t.replied += 1;
     else if (field === "failed") t.failed += 1;
     k.updatedAt = new Date().toISOString();
@@ -490,6 +492,68 @@ export async function confirmManualPayment(
     return { ok: true, order: { ...order, paymentState: "captured" } };
   } catch {
     return { ok: false, reason: "error" };
+  }
+}
+
+/**
+ * Follow-up sweep: sent lead-followup missions that got no outcome after N
+ * days get one gentle nudge ("still want the calculation?") — drafted as a
+ * pending mission, approval-gated like everything else unless AUTO_SEND.
+ *
+ * One nudge per source mission: the nudge id is deterministic on the source
+ * mission id, so repeated cron runs overwrite the same pending row instead of
+ * piling up duplicates. `draftNudges` returns how many were drafted vs
+ * skipped, for the cron response. Never throws.
+ */
+export async function draftNudges(now = new Date()): Promise<{ drafted: number; skipped: number }> {
+  let drafted = 0;
+  let skipped = 0;
+  try {
+    const days = Math.max(1, Number(process.env.AGENT_NUDGE_DAYS || 2));
+    const cutoff = now.getTime() - days * 24 * 60 * 60 * 1000;
+    const missions = await listMissions(2000);
+    for (const m of missions) {
+      if (m.kind !== "lead-followup" || m.status !== "sent") continue;
+      if (m.outcome) continue; // replied/no-reply/bounce → sequence over
+      const sentAt = Date.parse(m.sentAt || "");
+      if (!Number.isFinite(sentAt) || sentAt > cutoff) continue;
+
+      const source = m.to;
+      const industry = String(m.context?.industry || "");
+      const lang = m.context?.lang === "zh" ? "zh" : "en";
+      const nudge: AgentMission = {
+        id: crypto.createHash("sha256").update(`lead-nudge:${m.id}`).digest("hex").slice(0, 16),
+        kind: "lead-nudge",
+        status: "pending",
+        to: source,
+        subject: lang === "zh" ? `${m.subject} / 跟进` : `Re: ${m.subject}`,
+        body:
+          lang === "zh"
+            ? [
+                `你好，${industry ? `${industry} ` : ""}的完整测算还在等你。`,
+                "",
+                "如果仍想拿到，回复 3 个数字即可（月工单量 / 平均处理时长 / 客服人数）；已不需要则忽略此信。",
+                "",
+                "— Shiftless（自动跟进，非群发）",
+              ].join("\n")
+            : [
+                `Hi, your full ${industry ? `${industry} ` : ""}calculation is still waiting.`,
+                "",
+                "Reply with 3 numbers to get it: monthly tickets / average handle time / support headcount. If you no longer need it, just ignore this.",
+                "",
+                "— Shiftless (automated follow-up)",
+              ].join("\n"),
+        eventId: m.eventId,
+        context: { ...m.context, nudges: (Number(m.context?.nudges) || 0) + 1 },
+        createdAt: now.toISOString(),
+      };
+      const saved = await saveMission(nudge);
+      if (saved) drafted += 1;
+      else skipped += 1;
+    }
+    return { drafted, skipped };
+  } catch {
+    return { drafted, skipped };
   }
 }
 
