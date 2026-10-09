@@ -41,7 +41,19 @@ async function get(pathname) {
 
 const srv = spawn(process.execPath, [path.join(__dirname, "..", "node_modules", "next", "dist", "bin", "next"), "start", "-p", String(PORT)], {
   cwd: path.join(__dirname, ".."),
-  env: { ...process.env, NODE_OPTIONS: "--max-old-space-size=4096" },
+  env: {
+    ...process.env,
+    // Blank SMTP so e2e order submissions cannot fire real owner-alert emails
+    // to the operator's mailbox on every test run. Existing env vars win over
+    // .env.local, so the spawned server sees no mail transport and the routes
+    // respond alerted:false instead of mailing a human.
+    SMTP_HOST: "",
+    SMTP_PORT: "",
+    SMTP_USER: "",
+    SMTP_AUTH_CODE: "",
+    EMAIL_FROM: "",
+    NODE_OPTIONS: "--max-old-space-size=4096",
+  },
   stdio: "ignore",
 });
 

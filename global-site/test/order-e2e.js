@@ -28,7 +28,16 @@ async function get(pathname) {
 
 const srv = spawn(process.execPath, [path.join(__dirname, "..", "node_modules", "next", "dist", "bin", "next"), "start", "-p", String(PORT)], {
   cwd: path.join(__dirname, ".."),
-  env: { ...process.env, NODE_OPTIONS: "--max-old-space-size=4096" },
+  env: {
+    ...process.env,
+    // Same as geo-order-e2e: no mailbox spam from test orders.
+    SMTP_HOST: "",
+    SMTP_PORT: "",
+    SMTP_USER: "",
+    SMTP_AUTH_CODE: "",
+    EMAIL_FROM: "",
+    NODE_OPTIONS: "--max-old-space-size=4096",
+  },
   stdio: "ignore",
 });
 
