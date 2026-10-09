@@ -4,14 +4,14 @@
  * Why a script and not only /api/ping: both exist on purpose. /api/ping is the
  * post-deploy lever (runs inside Vercel, no local network needed). This script
  * is for the case right now where the local machine cannot resolve
- * shiftless.vercel.app but can reach api.indexnow.org — e.g. immediately after
+ * app.highkingflower.com but can reach api.indexnow.org — e.g. immediately after
  * a deploy that added or changed thousands of pages.
  *
  * Reads .next/server/app/sitemap.xml.body (the exact bytes /sitemap.xml
  * serves), so what we push is what the sitemap claims — no second URL list
  * that can drift from the real one. Requires a build first.
  *
- * IndexNow verifies that https://shiftless.vercel.app/{INDEXNOW_KEY}.txt hosts
+ * IndexNow verifies that https://app.highkingflower.com/{INDEXNOW_KEY}.txt hosts
  * the key; if that route is not deployed the endpoint answers 403 and this
  * script says so plainly instead of reporting a success.
  *
@@ -21,7 +21,8 @@
 const fs = require("fs");
 const path = require("path");
 
-const BASE = "https://shiftless.vercel.app";
+const BASE = "https://app.highkingflower.com";
+const HOST = "app.highkingflower.com";
 const BATCH = 1000;
 const SITEMAP = path.join(__dirname, "..", ".next", "server", "app", "sitemap.xml.body");
 
@@ -85,7 +86,7 @@ async function main() {
 
   for (let i = 0; i < batches.length; i++) {
     const body = JSON.stringify({
-      host: "shiftless.vercel.app",
+      host: HOST,
       key,
       keyLocation: `${BASE}/${key}.txt`,
       urlList: batches[i],

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import sitemap from "@/app/sitemap";
+import { SITE_URL as BASE, SITE_HOST } from "@/lib/site";
 
 // A full-sitemap push is 7 batches x 3 receivers with politeness sleeps —
 // roughly 25s. Without this the function is killed mid-push and the status
@@ -32,7 +33,6 @@ export const maxDuration = 60;
  * amount of code can do for us.
  */
 
-const BASE = "https://shiftless.vercel.app";
 /** IndexNow accepts at most 10,000 URLs per submission; stay well under it. */
 const BATCH = 1000;
 
@@ -60,7 +60,7 @@ async function push(key: string, endpoint: string, urlList: string[]): Promise<s
         authorization: `Bearer ${key}`,
       },
       body: JSON.stringify({
-        host: "shiftless.vercel.app",
+        host: SITE_HOST,
         key,
         keyLocation: `${BASE}/${key}.txt`,
         urlList,

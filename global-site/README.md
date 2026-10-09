@@ -1,6 +1,6 @@
 # Shiftless — Support Headcount & Automation ROI Calculator
 
-Live: **https://shiftless.vercel.app**
+Live: **https://app.highkingflower.com**
 
 A free, no-signup calculator that tells an e-commerce / SaaS / marketplace support
 team how many agents it actually needs, what that costs, and — honestly — whether

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "../globals.css";
-
-const SITE = "https://shiftless.vercel.app";
+import { SITE_URL as SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),

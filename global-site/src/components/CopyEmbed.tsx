@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * One-click copy for the embed snippet.
@@ -13,7 +14,7 @@ export function CopyEmbed({ className = "" }: { className?: string }) {
   const [state, setState] = useState<"idle" | "ok" | "err">("idle");
 
   const snippet = `<iframe
-  src="https://shiftless.vercel.app/embed"
+  src="${SITE_URL}/embed"
   width="100%" height="620" frameborder="0"
   title="Support headcount and automation ROI calculator"
   loading="lazy"></iframe>`;

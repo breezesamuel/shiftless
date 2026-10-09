@@ -5,8 +5,7 @@ import { paypalConfigured, createOrder } from "@/lib/paypal";
 import { sendOwnerAlert } from "@/lib/mail";
 import { saveOrder } from "@/lib/store";
 import { emit } from "@/lib/agent";
-
-const SITE = "https://shiftless.vercel.app";
+import { SITE_URL as SITE } from "@/lib/site";
 
 /**
  * Order intake.
@@ -107,7 +106,7 @@ export async function POST(req: Request) {
       ? body.ref.trim().toLowerCase().slice(0, 254)
       : undefined;
   const orderId = "SHF-" + randomUUID().slice(0, 8).toUpperCase();
-  const permalink = `https://shiftless.vercel.app/report?${encodeState(inputs)}`;
+  const permalink = `${SITE}/report?${encodeState(inputs)}`;
 
   const order = {
     orderId,

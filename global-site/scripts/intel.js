@@ -3,12 +3,12 @@
  * run on demand instead of waiting for the schedule.
  *
  * Usage: node scripts/intel.js [baseUrl] [secret]
- *   baseUrl default: https://shiftless.vercel.app
+ *   baseUrl default: https://app.highkingflower.com
  *   secret default: $CRON_SECRET
  */
 "use strict";
 
-const BASE = process.argv[2] || "https://shiftless.vercel.app";
+const BASE = process.argv[2] || "https://app.highkingflower.com";
 const secret = process.argv[3] || process.env.CRON_SECRET || "";
 
 (async () => {

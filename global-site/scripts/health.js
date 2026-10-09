@@ -17,7 +17,7 @@
 const args = process.argv.slice(2);
 const watch = args.includes("watch");
 const target =
-  process.env.HEALTH_URL || "https://shiftless.vercel.app/api/health";
+  process.env.HEALTH_URL || "https://app.highkingflower.com/api/health";
 const INTERVAL_MS = 60_000;
 
 const C = {

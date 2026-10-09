@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Calculator } from "@/components/Calculator";
+import { SITE_URL as BASE } from "@/lib/site";
 
 /**
  * Chinese-language entry point.
@@ -15,8 +16,6 @@ import { Calculator } from "@/components/Calculator";
  * (refuse to recommend automation below ~400 tickets/month, clamp coverage to
  * the industry ceiling, publish every constant) apply identically in Chinese.
  */
-
-const BASE = "https://shiftless.vercel.app";
 
 export const metadata: Metadata = {
   title: "客服团队编制测算器 — 你到底需要几个客服？AI 自动化值不值",

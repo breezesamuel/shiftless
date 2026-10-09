@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { compute, fmtMoney, DEFAULTS, CHANNELS, type Inputs, type Channel } from "@/lib/model";
 import { track } from "@/lib/track";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * Embeddable variant.
@@ -143,12 +144,12 @@ export function EmbedCalculator() {
       <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 14, lineHeight: 1.6 }}>
         Sizing from industry benchmarks (5.5 productive hours/shift, 4.6 shifts/FTE). Automation priced
         per resolved conversation, capped at the industry ceiling.{" "}
-        <a href="https://shiftless.vercel.app/methodology" target="_blank" rel="noopener nofollow"
+        <a href={`${SITE_URL}/methodology`} target="_blank" rel="noopener nofollow"
           style={{ color: "#64748b" }}>
           Full methodology
         </a>{" "}
         · Powered by{" "}
-        <a href="https://shiftless.vercel.app" target="_blank" rel="noopener" style={{ color: "#475569" }}>
+        <a href={SITE_URL} target="_blank" rel="noopener" style={{ color: "#475569" }}>
           Shiftless
         </a>
       </p>

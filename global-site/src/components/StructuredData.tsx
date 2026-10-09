@@ -1,4 +1,5 @@
 import { FAQ } from "@/lib/faq";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * JSON-LD.
@@ -26,27 +27,27 @@ export function StructuredData() {
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://shiftless.vercel.app/#website",
-        url: "https://shiftless.vercel.app",
+        "@id": `${SITE_URL}/#website`,
+        url: SITE_URL,
         name: "Shiftless",
         description:
           "Free support headcount and customer service automation ROI calculator.",
         inLanguage: "en",
-        publisher: { "@id": "https://shiftless.vercel.app/#org" },
+        publisher: { "@id": `${SITE_URL}/#org` },
       },
       {
         "@type": "Organization",
-        "@id": "https://shiftless.vercel.app/#org",
+        "@id": `${SITE_URL}/#org`,
         name: "Shanghai Bingdashan Intelligent Technology Co., Ltd.",
         alternateName: "上海丙大山智能科技有限公司",
-        url: "https://shiftless.vercel.app",
+        url: SITE_URL,
       },
       {
         "@type": "WebApplication",
         name: "Support Headcount & Automation ROI Calculator",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Any",
-        url: "https://shiftless.vercel.app",
+        url: SITE_URL,
         isAccessibleForFree: true,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
         featureList: [
@@ -58,7 +59,7 @@ export function StructuredData() {
       },
       {
         "@type": "FAQPage",
-        "@id": "https://shiftless.vercel.app/#faq",
+        "@id": `${SITE_URL}/#faq`,
         mainEntity: FAQ.map((f) => ({
           "@type": "Question",
           name: f.q,
@@ -72,19 +73,19 @@ export function StructuredData() {
             "@type": "ListItem",
             position: 1,
             name: "Calculator",
-            item: "https://shiftless.vercel.app/",
+            item: `${SITE_URL}/`,
           },
           {
             "@type": "ListItem",
             position: 2,
             name: "Benchmarks",
-            item: "https://shiftless.vercel.app/benchmarks",
+            item: `${SITE_URL}/benchmarks`,
           },
           {
             "@type": "ListItem",
             position: 3,
             name: "AI vs human cost",
-            item: "https://shiftless.vercel.app/ai-vs-human-cost",
+            item: `${SITE_URL}/ai-vs-human-cost`,
           },
         ],
       },

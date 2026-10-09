@@ -23,13 +23,13 @@
  * that leak is documented in the route itself and is a known, accepted limit.
  *
  * Usage: node scripts/stress-paypal.js [baseUrl] [N] [--proxy=url] [--ip=addr]
- *   baseUrl default: https://shiftless.vercel.app
+ *   baseUrl default: https://app.highkingflower.com
  *   N default: 8
  */
 "use strict";
 const { ProxyAgent, Agent } = require("undici");
 
-const BASE = process.argv[2] || "https://shiftless.vercel.app";
+const BASE = process.argv[2] || "https://app.highkingflower.com";
 const N = Math.min(Math.max(1, parseInt(process.argv[3] || "8", 10)), 16);
 const proxyArg = process.argv.find((a) => a.startsWith("--proxy="));
 const PROXY =

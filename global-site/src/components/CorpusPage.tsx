@@ -4,6 +4,7 @@ import { fmtMoney, shareUrl, STATE_VERSION } from "@/lib/model";
 import { INDUSTRY_EDITORIAL, industryLabel, bandLabel, relatedPages } from "@/lib/corpus";
 import { CorpusLeadCta } from "@/components/CorpusLeadCta";
 import { RefLink } from "@/components/RefLink";
+import { SITE_URL as BASE } from "@/lib/site";
 
 /**
  * One programmatic page, rendered from real model output.
@@ -17,8 +18,6 @@ import { RefLink } from "@/components/RefLink";
  * number is wrong it is wrong identically in both languages, which is the only
  * way this stays trustworthy.
  */
-
-const BASE = "https://shiftless.vercel.app";
 
 const VERDICT_TEXT: Record<string, { en: string; zh: string; tone: string }> = {
   strong: {

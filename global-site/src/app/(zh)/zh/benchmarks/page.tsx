@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_URL as BASE } from "@/lib/site";
 
 /**
  * Chinese benchmark tables.
@@ -9,8 +10,6 @@ import Link from "next/link";
  * are the same ones the model uses — this page documents the constants rather
  * than restating them from memory, so the two cannot drift.
  */
-
-const BASE = "https://shiftless.vercel.app";
 
 export const metadata: Metadata = {
   title: "客服行业基准数据 — 人效、成本与自动化回本线",

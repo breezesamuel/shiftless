@@ -4,6 +4,7 @@ import { StructuredData } from "@/components/StructuredData";
 import { CopyEmbed } from "@/components/CopyEmbed";
 import { Upsell } from "@/components/Upsell";
 import { FAQ } from "@/lib/faq";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata = {
   title: "Support Headcount Calculator — How Many Support Agents Do You Need?",
@@ -157,7 +158,7 @@ export default function Home() {
             </p>
             <pre className="mt-5 overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs leading-relaxed text-slate-100">
 {`<iframe
-  src="https://shiftless.vercel.app/embed"
+  src="${SITE_URL}/embed"
   width="100%" height="620" frameborder="0"
   title="Support headcount and automation ROI calculator"
   loading="lazy"></iframe>`}

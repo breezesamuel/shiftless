@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { buildCorpus } from "@/lib/corpus";
-
-const BASE = "https://shiftless.vercel.app";
+import { SITE_URL as BASE } from "@/lib/site";
 
 /**
  * One sitemap entry per published programmatic page, in both languages.

@@ -3,6 +3,7 @@ import { captureOrder } from "@/lib/paypal";
 import { sendOwnerAlert } from "@/lib/mail";
 import { getOrder, updateOrder, saveReferral } from "@/lib/store";
 import { emit } from "@/lib/agent";
+import { SITE_URL as SITE } from "@/lib/site";
 
 /**
  * PayPal return hop.
@@ -17,8 +18,6 @@ import { emit } from "@/lib/agent";
  * amount and currency come back from PayPal's capture response, never from
  * the URL.
  */
-
-const SITE = "https://shiftless.vercel.app";
 
 function escapeHtml(s: string): string {
   return s
