@@ -43,7 +43,10 @@ export const metadata: Metadata = {
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
-    bing: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || undefined,
+    // Next.js has no named `bing` key; Bing's msvalidate.01 tag goes in `other`.
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
   },
 };
 
